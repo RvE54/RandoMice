@@ -39,7 +39,7 @@
             // 
             this.CloseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.CloseButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.CloseButton.Location = new System.Drawing.Point(292, 217);
+            this.CloseButton.Location = new System.Drawing.Point(292, 231);
             this.CloseButton.Name = "CloseButton";
             this.CloseButton.Size = new System.Drawing.Size(75, 23);
             this.CloseButton.TabIndex = 0;
@@ -57,7 +57,7 @@
             this.CreditsPanel.Controls.Add(this.LicenceLabel);
             this.CreditsPanel.Location = new System.Drawing.Point(12, 12);
             this.CreditsPanel.Name = "CreditsPanel";
-            this.CreditsPanel.Size = new System.Drawing.Size(355, 201);
+            this.CreditsPanel.Size = new System.Drawing.Size(355, 215);
             this.CreditsPanel.TabIndex = 1;
             // 
             // LicenceLabel
@@ -69,7 +69,7 @@
             this.LicenceLabel.MaximumSize = new System.Drawing.Size(355, 0);
             this.LicenceLabel.Name = "LicenceLabel";
             this.LicenceLabel.Padding = new System.Windows.Forms.Padding(6);
-            this.LicenceLabel.Size = new System.Drawing.Size(334, 194);
+            this.LicenceLabel.Size = new System.Drawing.Size(334, 207);
             this.LicenceLabel.TabIndex = 1;
             this.LicenceLabel.Text = resources.GetString("LicenceLabel.Text");
             // 
@@ -78,7 +78,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.CloseButton;
-            this.ClientSize = new System.Drawing.Size(379, 251);
+            this.ClientSize = new System.Drawing.Size(379, 265);
             this.Controls.Add(this.CreditsPanel);
             this.Controls.Add(this.CloseButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -87,7 +87,7 @@
             this.MinimizeBox = false;
             this.Name = "CreditsForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "CreditsForm";
+            this.Text = "Credits";
             this.CreditsPanel.ResumeLayout(false);
             this.CreditsPanel.PerformLayout();
             this.ResumeLayout(false);
