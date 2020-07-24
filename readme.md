@@ -1,6 +1,9 @@
 # RandoMice
 RandoMice has been developed as a user-friendly tool that allows users to create well-balanced blocks of experimental units and randomly assign those blocks to experimental intervention groups.
 
+When publishing data for which RandoMice was used, please cite:
+[van Eenige et al. PLOS ONE (2020)](https://www.doi.org/10.1371/journal.pone.0237096).
+
 ## Getting started
 These instructions will get you a copy of the software up and running on your local machine.
 
@@ -82,8 +85,9 @@ The following people have contributed code/logics to RandoMice:
 The following people have contributed otherwise to RandoMice:
 * P.S. Verhave
 * I.A.C.W. Tiebosch
-* S.T. Bate
 * P.C.N. Rensen
+
+We thank Simon T. Bate for the helpful discussions regarding validation of the implementation of the random number generator.
 
 ## License
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version - see the [LICENSE](./LICENSE) file for details.

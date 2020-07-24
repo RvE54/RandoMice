@@ -64,10 +64,10 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.6.1"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
                     {
-                    "Name" = "8:Microsoft .NET Framework 4.6.1 (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.6.1"
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
                     }
                 }
             }
@@ -96,10 +96,10 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.6.1"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
                     {
-                    "Name" = "8:Microsoft .NET Framework 4.6.1 (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.6.1"
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
                     }
                 }
             }
@@ -251,15 +251,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:RandoMice"
-        "ProductCode" = "8:{E3ACBBDA-43AD-4B00-98BE-4D6FB5238F7F}"
-        "PackageCode" = "8:{3F3BCFFE-ABE5-4412-B9D9-9D3B195DFD39}"
+        "ProductCode" = "8:{D081DAFC-B36B-496B-BA1B-C622B2C8C943}"
+        "PackageCode" = "8:{DB84A76A-EE18-4C1C-A375-3288A506E319}"
         "UpgradeCode" = "8:{67074A1F-E8EA-44A4-8CEA-E64A1125CE6F}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.9"
+        "ProductVersion" = "8:1.1.0"
         "Manufacturer" = "8:LUMC"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -372,7 +372,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B4855A7296C744D0AFBC70A32F475F91"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B1E6DD47B5A64FF69F10088EB9B7411D"
             {
             "Name" = "8:RandoMice"
             "Arguments" = "8:"
@@ -881,7 +881,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AC0A51D3EC27448281379447B418951F"
             {
-            "SourcePath" = "8:..\\RvE_RandoMice\\obj\\Release\\RandoMice.exe"
+            "SourcePath" = "8:..\\RvE_RandoMice\\obj\\Debug\\RandoMice.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_D0D7BC82D119417A9148DDE20B8BF4A8"

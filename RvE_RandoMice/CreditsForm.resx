@@ -128,11 +128,12 @@ S. Kooijman
 The following people have contributed otherwise to RandoMice:
 P.S. Verhave
 I.A.C.W. Tiebosch
-S.T. Bate
 P.C.N. Rensen
 
-When publishing data for which RandoMice was used, please cite:
-van Eenige et. al. (2020)</value>
+We thank Simon T. Bate for the helpful discussions regarding
+validation of the implementation of the random number generator.
+
+When publishing data for which RandoMice was used, please cite:</value>
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

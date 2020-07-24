@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -28,9 +28,9 @@ namespace RvE_RandoMice
     [Serializable]
     public class Marker
     {
-        public Marker(string Name)
+        public Marker(string name)
         {
-            this.Name = Name;
+            Name = name;
         }
 
         public string Name { get; set; } = string.Empty;

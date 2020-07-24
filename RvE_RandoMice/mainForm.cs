@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Xml;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace RvE_RandoMice
@@ -67,6 +68,10 @@ namespace RvE_RandoMice
                                            TimeRemainingLabel.Text,
                                            ProgressLabel.Text,
                                            ProgressPercentageLabel.Text);
+
+            //weekly check for updates
+            if (DateTime.Now.Subtract(Global.Settings.LastCheckedForUpdate).TotalDays > 7)
+                CheckForUpdates(displayNoUpdateAvailableWarning: false, displayErrorMessage: false);
 
             //create an empty experiment and set various Global values for use
             Global.CurrentExperiment = new Experiment();
@@ -183,6 +188,8 @@ namespace RvE_RandoMice
             }
             else if (e.KeyCode == Keys.S && e.Control) //Save FinishedExperiment on Ctrl+S
                 ShowSaveMessageBox(SaveExperimentIfPossibleNeededAndWanted(forceSave: true));
+            else if (e.KeyCode == Keys.F1 && e.Control) //Navigate to the readme page on GitHub
+                Process.Start(Global.Settings.ReadmePage);
             else if (e.KeyCode == Keys.F4 && e.Alt) //Exit on Alt+F4
                 this.Close();
         }
@@ -329,7 +336,7 @@ namespace RvE_RandoMice
             List<Control> childControls = new List<Control>(parentControl.Controls.OfType<Control>());
             List<Control> result = new List<Control>();
 
-            if (childControls.Count == 0 || parentControl.GetType() == typeof(DataGridView) || parentControl.GetType() == typeof(MyDataGridView))
+            if (childControls.Count == 0 || parentControl.GetType() == typeof(DataGridView) || parentControl.GetType() == typeof(MyNumericUpDown) || parentControl.GetType() == typeof(MyDataGridView))
                 result.Add(parentControl);
             else
             {
@@ -360,8 +367,10 @@ namespace RvE_RandoMice
 
             //enable or disable all controls, except for labels
             foreach (Control control in allControls)
-                if(control.GetType() != typeof(Label) && !control.IsDisposed)
+            {
+                if (control.GetType() != typeof(Label) && !control.IsDisposed)
                     control.Invoke(new Action(() => { control.Enabled = Convert.ToBoolean(enableOrDisable); }));
+            }
         }
 
         /// <summary>
@@ -415,7 +424,7 @@ namespace RvE_RandoMice
                     BackColor = System.Drawing.SystemColors.Window
                 };
 
-                NumericUpDown newVariableDecimalPlacesNumericUpDown = new NumericUpDown
+                NumericUpDown newVariableDecimalPlacesNumericUpDown = new MyNumericUpDown
                 {
                     Name = Global.Settings.VariableDecimalPlacesNumericUpDownNameBasis + i.ToString(),
                     Value = Global.CurrentExperiment.ActiveVariables[i].DecimalPlaces,
@@ -426,7 +435,7 @@ namespace RvE_RandoMice
                     Width = Global.Settings.DefaultVariableDecimalPlacesNumericUpDownWidth
                 };
 
-                NumericUpDown newVariableWeightNumericUpDown = new NumericUpDown
+                NumericUpDown newVariableWeightNumericUpDown = new MyNumericUpDown
                 {
                     Name = Global.Settings.VariableWeightNumericUpDownNameBasis + i.ToString(),
                     Value = (decimal)Global.CurrentExperiment.ActiveVariables[i].Weight,
@@ -637,7 +646,7 @@ namespace RvE_RandoMice
                 if (newSubgroupSizeNumericUpDown == null)
                 {
                     //add a new control
-                    newSubgroupSizeNumericUpDown = new NumericUpDown
+                    newSubgroupSizeNumericUpDown = new MyNumericUpDown
                     {
                         Name = Global.Settings.SubgroupSizeNumericUpDownNameBasis + currentBlockNumber.ToString() + "." + newSubgroupNumber.ToString(),
                         Top = top,
@@ -1258,18 +1267,29 @@ namespace RvE_RandoMice
                 backgroundWorkerCanStart = (dialogResult == DialogResult.OK);
                 DesiredUniqueSetsNumericUpDown.Value = DesiredUniqueSetsNumericUpDown.Minimum;
             }
-            else if (Global.DesiredUniqueSets > Global.TheoreticalUniqueBlockSets)
+            else
+                backgroundWorkerCanStart = true;
+
+            if (Global.CurrentExperiment.AllExperimentalUnits.Select(experimentalUnit => experimentalUnit.Name.Replace(" ", "")).ToList().Distinct().Count() < Global.CurrentExperiment.AllExperimentalUnits.Count)
+            {
+                //check if the names of experimental units are unique. If that is not the case, the user cannot distinguish between those experimental units when reviewing the results.
+                DialogResult dialogResult = MessageBox.Show("Some experimental units have identical names. It will be impossible" +
+                    "to distinguish those experimental units when reviewing the results. Continue anyways?",
+                        "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+
+                backgroundWorkerCanStart = (dialogResult == DialogResult.Yes);
+            }
+
+            if (Global.DesiredUniqueSets > Global.TheoreticalUniqueBlockSets)
             {
                 //check if it is possible to find the desired number of unique sets
                 DialogResult dialogResult = MessageBox.Show(String.Format("{0} blocks cannot be created, as theoretically only {1} unique sets exist.\n" +
                         "Therefore, the program will continue and generate {1} unique sets instead.", Global.DesiredUniqueSets.ToString("N0"), Global.TheoreticalUniqueBlockSets.ToString("N0")),
                         "Warning", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
-                
+
                 backgroundWorkerCanStart = (dialogResult == DialogResult.OK);
                 DesiredUniqueSetsNumericUpDown.Value = (decimal)Global.TheoreticalUniqueBlockSets;
             }
-            else
-                backgroundWorkerCanStart = true;
 
             if (backgroundWorkerCanStart)
                 backgroundWorkerCanStart = (SaveExperimentIfPossibleNeededAndWanted() != SaveState.Cancelled);
@@ -1278,6 +1298,7 @@ namespace RvE_RandoMice
             if (!CreateBlockSetsBackgroundWorker.IsBusy && backgroundWorkerCanStart)
             {
                 // Start the asynchronous operation.
+                Stopwatch.Restart();
                 CreateBlockSetsTimer.Start();
                 CreateBlockSetsBackgroundWorker.RunWorkerAsync();
             }
@@ -1319,14 +1340,14 @@ namespace RvE_RandoMice
             //create new Run
             Global.CurrentRun = Global.CurrentExperiment.CreateNewRun(Global.CheckForBlockSetUnicity);
 
+            //calculate theoretical unique sets available
+            UpdateTheoreticalUniqueBlockSetsLabel();
+            Global.TheoreticalUniqueBlockSets = CalculateTheoreticalNumberOfUniqueSets();
+
             //lock controls
             Control[] controlsToEnable = { AbortRunButton, ShowResultsButton, MainProgressBar };
             EnableOrDisableAllControls(EnableOrDisable.Disable);
             EnableOrDisableControls(EnableOrDisable.Enable, controlsToEnable);
-
-            //calculate theoretical unique sets available
-            UpdateTheoreticalUniqueBlockSetsLabel();
-            Global.TheoreticalUniqueBlockSets = CalculateTheoreticalNumberOfUniqueSets();
 
             double theoreticalRequiredAttempts = Global.DesiredUniqueSets;
 
@@ -1535,8 +1556,11 @@ namespace RvE_RandoMice
         /// </summary>
         private void CreateBlockSetsTimer_Tick(object sender, EventArgs e)
         {
-            TimeElapsedLabel.Text = Global.Settings.DefaultTimeElapsedLabelText + "\n" + Stopwatch.Elapsed.ToString(Global.Settings.TimeSpanStringFormat);
-            TimeRemainingLabel.Text = Global.Settings.DefaultTimeRemainingLabelText + "\n" + Global.CurrentRun.CalculateTimeRemaining(Stopwatch);
+            if (Global.CurrentRun != null)
+            {
+                TimeElapsedLabel.Text = Global.Settings.DefaultTimeElapsedLabelText + "\n" + Stopwatch.Elapsed.ToString(Global.Settings.TimeSpanStringFormat);
+                TimeRemainingLabel.Text = Global.Settings.DefaultTimeRemainingLabelText + "\n" + Global.CurrentRun.CalculateTimeRemaining(Stopwatch);
+            }
         }
 
         /// <summary>
@@ -1582,7 +1606,7 @@ namespace RvE_RandoMice
             }
 
             Global.TheoreticalUniqueBlockSets = theoreticalUniqueBlocks;
-            EnableOrDisableControls((EnableOrDisable)Convert.ToInt32(theoreticalUniqueBlocks <= Global.Settings.MaximalDesiredUniqueBlockSets), new Control[] { SetDesiredUniqueBlockSetsToCreateTo99Percent });
+            EnableOrDisableControls((EnableOrDisable)Convert.ToInt32(theoreticalUniqueBlocks != 0 && theoreticalUniqueBlocks <= Global.Settings.MaximalDesiredUniqueBlockSets), new Control[] { SetDesiredUniqueBlockSetsToCreateTo99PercentButton });
 
             return theoreticalUniqueBlocks;
         }
@@ -1654,8 +1678,6 @@ namespace RvE_RandoMice
                                                                            //this boolean is again set to false once the user selects the SubgroupSizesTabPage
                 }
             }
-            else
-                SuppressWarningThatSubgroupSizesMayHaveChanged = false; //make sure that the user receives the warning message at least once
         }
 
         /// <summary>
@@ -1685,7 +1707,7 @@ namespace RvE_RandoMice
                     Width = Global.Settings.DefaultBlockNumberLabel.Width
                 };
 
-                NumericUpDown newBlockSizeNumericUpDown = new NumericUpDown
+                MyNumericUpDown newBlockSizeNumericUpDown = new MyNumericUpDown
                 {
                     Name = Global.Settings.BlockSizeNumericUpDownNameBasis + i.ToString(),
                     Top = top,
@@ -1746,7 +1768,7 @@ namespace RvE_RandoMice
                     SettingsTabControl.TabPages.Add(blockSizesTabPage);
                 }
 
-                int numericUpDownsInSettingsTabControlCount = SettingsTabControl.TabPages[Global.Settings.BlockSizesTabPageName].Controls.OfType<NumericUpDown>().Count();
+                int numericUpDownsInSettingsTabControlCount = SettingsTabControl.TabPages[Global.Settings.BlockSizesTabPageName].Controls.OfType<MyNumericUpDown>().Count();
 
                 //remove warning label that says that the number of blocks has not been chosen yet
                 if (SettingsTabControl.TabPages[Global.Settings.BlockSizesTabPageName].Controls.OfType<Label>().Select(label => label.Name).ToList().Contains(Global.Settings.NoBlocksExistYetLabelName))
@@ -1815,15 +1837,10 @@ namespace RvE_RandoMice
             {
                 //do nothing
             }
-            else if((decimal)CalculateTheoreticalNumberOfUniqueSets() < DesiredUniqueSetsNumericUpDown.Maximum)
+            else if(CalculateTheoreticalNumberOfUniqueSets() < (double)DesiredUniqueSetsNumericUpDown.Maximum)
                 DesiredUniqueSetsNumericUpDown.Value = (decimal)CalculateTheoreticalNumberOfUniqueSets();
             else
                 DesiredUniqueSetsNumericUpDown.Value = DesiredUniqueSetsNumericUpDown.Maximum;
-        }
-
-        private void SetDesiredUniqueBlockSetsToCreateToMax_EnabledChanged(object sender, EventArgs e)
-        {
-            CalculateTheoreticalNumberOfUniqueSets();
         }
 
         /// <summary>
@@ -1839,7 +1856,9 @@ namespace RvE_RandoMice
                 //do nothing
             }
             else if ((decimal)maxUniqueSets < DesiredUniqueSetsNumericUpDown.Maximum)
-                DesiredUniqueSetsNumericUpDown.Value = (decimal)maxUniqueSets;
+                DesiredUniqueSetsNumericUpDown.Value = Math.Round((decimal)maxUniqueSets, 0, MidpointRounding.AwayFromZero); //round decimal value here to avoid inconsistencies when
+                                                                                                                             //casting the decimal to an integer
+                                                                                                                             //at DesiredUniqueSetsNumericUpDown_ValueChanged
             else
                 DesiredUniqueSetsNumericUpDown.Value = DesiredUniqueSetsNumericUpDown.Maximum;
         }
@@ -1878,10 +1897,10 @@ namespace RvE_RandoMice
             int subgroupNumber = int.Parse(senderControl.Name.Split('.')[1]);
 
             TabPage subgroupSizesTabPage = SettingsTabControl.TabPages[Global.Settings.SubgroupSizesTabPageName];
-            List<NumericUpDown> numericUpDownsOfCurrentBlock = new List<NumericUpDown>();
+            List<MyNumericUpDown> numericUpDownsOfCurrentBlock = new List<MyNumericUpDown>();
 
             //collect all comboboxes within the current block, but with a larger subgroup number
-            numericUpDownsOfCurrentBlock.AddRange(subgroupSizesTabPage.Controls.OfType<NumericUpDown>()
+            numericUpDownsOfCurrentBlock.AddRange(subgroupSizesTabPage.Controls.OfType<MyNumericUpDown>()
                 .Where(numericUpDown => numericUpDown.Name.Split('.')[0] == Global.Settings.SubgroupSizeNumericUpDownNameBasis + blockNumber.ToString()
                 && int.Parse(numericUpDown.Name.Split('.')[1]) > subgroupNumber).ToArray());
 
@@ -1902,7 +1921,7 @@ namespace RvE_RandoMice
                     .OrderBy(numericUpDown => numericUpDown.Name.Split('.')[1].Length).ToList();
 
                 //rename the remaining comboboxes by changeing the subgroupNumber
-                foreach (NumericUpDown numericUpDown in numericUpDownsOfCurrentBlock)
+                foreach (MyNumericUpDown numericUpDown in numericUpDownsOfCurrentBlock)
                 {
                     lastSubgroupOfCurrentBlock = int.Parse(numericUpDown.Name.Split('.')[1]); //find the last subgroup number within the current block
                     numericUpDown.Name = numericUpDown.Name.Split('.')[0] + '.' + (int.Parse(numericUpDown.Name.Split('.')[1]) - 1).ToString(); //rename control
@@ -1911,7 +1930,7 @@ namespace RvE_RandoMice
             }
 
             //finally, if no numericUpDowns can be created that correspond to the last subgroup, it means that the subgroupLabel can be removed
-            if (!(subgroupSizesTabPage.Controls.OfType<NumericUpDown>()
+            if (!(subgroupSizesTabPage.Controls.OfType<MyNumericUpDown>()
                 .Where(comboBox => comboBox.Name.Split('.')[0].Contains(Global.Settings.SubgroupSizeNumericUpDownNameBasis)
                 && comboBox.Name.Split('.')[1] == lastSubgroupOfCurrentBlock.ToString()).Count() > 0))
             {
@@ -1921,7 +1940,7 @@ namespace RvE_RandoMice
 
         private void SubgroupSizeNumericUpDown_MouseClick(object sender, MouseEventArgs e)
         {
-            NumericUpDown senderNumericUpDown = sender as NumericUpDown;
+            NumericUpDown senderNumericUpDown = sender as MyNumericUpDown;
             
             if (e.Button == MouseButtons.Right)
             {
@@ -1950,7 +1969,7 @@ namespace RvE_RandoMice
             if (saveState == SaveState.Success && !suppressSaveSuccessMessage)
                 MessageBox.Show("Data saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.None);
             else if (saveState == SaveState.NotNeeded && !suppressSaveNotNeededMessage)
-                MessageBox.Show("No saveable results yet exist!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("No saveable results exist yet!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             else if (saveState == SaveState.Failed && !suppressSaveFailedMessage)
                 MessageBox.Show("Data could not be saved.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
@@ -2010,6 +2029,8 @@ namespace RvE_RandoMice
         {
             if (SaveExperimentIfPossibleNeededAndWanted(dialogTitle: "Resetting...") != SaveState.Cancelled)
             {
+                SuppressWarningThatSubgroupSizesMayHaveChanged = true;
+
                 //Clear Experiments
                 Global.CurrentExperiment = new Experiment();
                 Global.FinishedExperiment = null;
@@ -2087,7 +2108,7 @@ namespace RvE_RandoMice
         /// <param name="selectedBlockSetIndex">The index value of the BlockSet in Global.finishedExperiment.Runs.Last().BlockSets.</param>
         private void DisplayBlockSetResults(int selectedBlockSetIndex)
         {
-            if (Global.FinishedExperiment != null && selectedBlockSetIndex >= 0)
+            if (Global.FinishedExperiment != null && selectedBlockSetIndex < Global.FinishedExperiment.Runs.Last().BlockSets.Count  && selectedBlockSetIndex >= 0)
             {
                 //paste BlockSet details into the datagridviews
                 NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.PasteString(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerBlockAsString(selectedBlockSetIndex));
@@ -2240,6 +2261,8 @@ namespace RvE_RandoMice
             //start BackgroundWorker
             if (exportFileSaveFileDialog.ShowDialog() == DialogResult.OK)
             {
+                Stopwatch.Restart();
+
                 if (fileExtension == ".xls" && !ExportToExcelBackgroundWorker.IsBusy) //export to Excel
                 {
                     CreateBlockSetsTimer.Start();
@@ -2699,7 +2722,7 @@ namespace RvE_RandoMice
         }
         #endregion
 
-        #region aboutForm
+        #region ToolstripMenuItemEvents
         /// <summary>
         /// Displays the About form for a given duration.
         /// </summary>
@@ -2717,6 +2740,95 @@ namespace RvE_RandoMice
             System.Threading.Thread.Sleep(duration); //display frmAbout for given duration before closing.
             newAboutForm.Close();
             newAboutForm.Dispose();
+        }
+
+        private void ViewHelpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(Global.Settings.ReadmePage);
+        }
+
+        private void CheckForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CheckForUpdates();
+        }
+
+        /// <summary>
+        /// Opens an url, and extracts an embedded xml document.
+        /// </summary>
+        /// <param name="url">A string containing the url of the web page that needs to be opened.</param>
+        /// <param name="XmlTag">A string containing the Xml tag enclosing the embedded document.</param>
+        /// <returns>An instance of XmlDocument based on the embedded Xml code.</returns>
+        private XmlDocument LoadWebpageAndGetEmbeddedXmlDocument(string url, string XmlTag)
+        {
+            XmlDocument xmlDocument = new XmlDocument();
+            var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+            request.UserAgent = ".NET Framework Client"; //anything but an empty string
+
+            using (var response = request.GetResponse())
+            using (var stream = response.GetResponseStream())
+            {
+                StreamReader reader = new StreamReader(stream);
+                string htmlText = reader.ReadToEnd();
+
+                string xmlText = htmlText.Substring(htmlText.IndexOf("<" + XmlTag + ">"));
+                xmlText = xmlText.Substring(0, xmlText.IndexOf(@"</" + XmlTag + ">") + ("</" + XmlTag + ">").Length + 1);
+
+                xmlDocument.LoadXml(xmlText);
+                return xmlDocument;
+            }
+        }
+
+        /// <summary>
+        /// Check the internet if an update is available.
+        /// </summary>
+        /// <param name="displayNoUpdateAvailableWarning">A boolean which is determines if a messagebox will be displayed if no updates are available. Default value is true.</param>
+        /// <param name="displayErrorMessage">A boolean which is determines if a messagebox will be displayed if an error is thrown. Default is true.</param>
+        private void CheckForUpdates(bool displayNoUpdateAvailableWarning = true, bool displayErrorMessage = true)
+        {
+            string checkForUpdatesURL = Global.Settings.CheckForUpdatesPage;
+
+            try
+            {
+                XmlDocument updateInfoXmlDocument = LoadWebpageAndGetEmbeddedXmlDocument(checkForUpdatesURL, "randomicelatestversionxmldocument");
+
+                //extract data from xml document
+                int newMajor = int.Parse(updateInfoXmlDocument.SelectSingleNode("//currentversion/major").InnerText);
+                int newMinor = int.Parse(updateInfoXmlDocument.SelectSingleNode("//currentversion/minor").InnerText);
+                int newBuild = int.Parse(updateInfoXmlDocument.SelectSingleNode("//currentversion/build").InnerText);
+                string newAssemblyVersion = "v" + string.Join(".", new string[] { newMajor.ToString(), newMinor.ToString(), newBuild.ToString() });
+
+                string newVersionReleasesPageURL = updateInfoXmlDocument.SelectSingleNode("//releasespageurl").InnerText;
+
+                //compare new version to old version
+                bool navigateToDownloadsPage = false;
+
+                if (newAssemblyVersion != Global.CurrentAssemblyVersion)
+                {
+                    string message = string.Format("Update available:\n\nCurrent version {0}\nNew version {1}\n\nDo you want to navigate to RandoMice's releases page now?",
+                        Global.CurrentAssemblyVersion,
+                        "v" + string.Join(".", new string[] { newMajor.ToString(), newMinor.ToString(), newBuild.ToString() }));
+
+                    navigateToDownloadsPage = MessageBox.Show(message, "Update available", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation) == DialogResult.Yes;
+                }
+                else if (displayNoUpdateAvailableWarning)
+                    MessageBox.Show("Your version of RandoMice is up to date!", "RandoMice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                //navigate to RandoMice's GitHub page if needed
+                if (navigateToDownloadsPage)
+                    Process.Start(newVersionReleasesPageURL);
+
+                //save current date
+                Properties.Settings.Default.LastCheckedForUpdates = string.Join("_", new string[] { DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString() });
+                Properties.Settings.Default.Save();
+            }
+            catch (Exception)
+            {
+                if (displayErrorMessage)
+                {
+                    if (MessageBox.Show("Error while checking for updates. Please try again later or manually check the web for updates.\n\nDo you want to navigate to RandoMice's releases page now?", "Error", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Error) == DialogResult.Yes)
+                        Process.Start(Global.Settings.ReleasesPage);
+                }
+            }
         }
         #endregion
 

@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -68,8 +68,22 @@ namespace RvE_RandoMice
             DefaultTimeRemainingLabelText = defaultTimeRemainingLabelText;
             DefaultProgressLabelText = defaultProgressLabelText;
             DefaultProgressPercentageLabelText = defaultProgressPercentageLabelText;
+
+            try
+            {
+                int[] LastCheckedForUpdateYearMonthDay = Properties.Settings.Default.LastCheckedForUpdates.Split('_').Select(value => int.Parse(value)).ToArray();
+                LastCheckedForUpdate = new DateTime(LastCheckedForUpdateYearMonthDay[0], LastCheckedForUpdateYearMonthDay[1], LastCheckedForUpdateYearMonthDay[2]);
+            }
+            catch
+            {
+                //do nothing, value will stay at default value
+            }
         }
 
+        public DateTime LastCheckedForUpdate { get; private set; } = new DateTime(2020, 1, 1);
+        public string ReleasesPage { get; private set; } = "https://github.com/RvE54/RandoMice/releases";
+        public string ReadmePage { get; private set; } = "https://github.com/RvE54/RandoMice/blob/master/readme.md#randomice";
+        public string CheckForUpdatesPage { get; private set; } = "https://www.RensenLaboratory.nl/Unique_Tools/RandoMice/";
         public double MissingValue { get; private set; } = -999;
         public short MissingBlockSize { get; private set; } = -999;
         public string TimeSpanStringFormat { get; private set; } = @"hh\:mm\:ss";

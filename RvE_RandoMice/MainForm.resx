@@ -212,7 +212,7 @@ For example, in animal experiments, ear marks are often used to distinguish anim
 
 If your data includes markers, you may instruct the program in which column the markers can be found.
 Next, you may define what the default subgroup size should be. A new tab page will appear, in
-which you can (optionally) add or remove subgroups and change the size each subgroups.
+which you can change the size of each subgroup, and optionally add or remove subgroups.
 
 While creating subgroups, the program will always make sure that the experimental units
 remain identifiable. In other words, two experimental units within one subgroup will never have the same marker.

@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,24 @@ namespace RvE_RandoMice
         private void CloseButton_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void LicenceLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            try
+            {
+                VisitLink();
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("Unable to open the link.", "Link", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void VisitLink()
+        {
+            LicenceLinkLabel.LinkVisited = true;
+            System.Diagnostics.Process.Start("https://www.doi.org/10.1371/journal.pone.0237096");
         }
     }
 }

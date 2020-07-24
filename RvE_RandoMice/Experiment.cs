@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -208,29 +208,29 @@ namespace RvE_RandoMice
         {
             SaveState saveState = SaveState.Cancelled; //default value;
 
-            ////try
-            ////{
-                //try to serialize finishedExperiment to stream
-                IFormatter formatter = new BinaryFormatter();
+            try
+            {
+            //try to serialize finishedExperiment to stream
+            IFormatter formatter = new BinaryFormatter();
 
-                using (Stream stream = new FileStream(fileName,
-                                            FileMode.Create,
-                                            FileAccess.Write, FileShare.None))
-                {
-                    formatter.Serialize(stream, this);
-                    stream.Close();
-                }
+            using (Stream stream = new FileStream(fileName,
+                                        FileMode.Create,
+                                        FileAccess.Write, FileShare.None))
+            {
+                formatter.Serialize(stream, this);
+                stream.Close();
+            }
 
-                saveState = SaveState.Success;
+            saveState = SaveState.Success;
 
-                RunCountAtLastSave = Runs.Count(); //save the number of runs currently present
-                HasChangedSinceLastSave = false;
-                SaveFilePath = fileName;
-            ////}
-            ////catch
-            ////{
-            ////    saveState = SaveState.Failed;
-            ////}
+            RunCountAtLastSave = Runs.Count(); //save the number of runs currently present
+            HasChangedSinceLastSave = false;
+            SaveFilePath = fileName;
+            }
+            catch
+            {
+                saveState = SaveState.Failed;
+            }
 
             return saveState;
         }
@@ -246,6 +246,7 @@ namespace RvE_RandoMice
         }
 
         public List<Variable> AllVariables { get; set; } = new List<Variable>();
+
         public List<Variable> ActiveVariables { get; set; } = new List<Variable>(); //All variables except those that contain names or markers of experimental units
 
         public List<ExperimentalUnit> AllExperimentalUnits { get; set; } = new List<ExperimentalUnit>();
@@ -261,6 +262,7 @@ namespace RvE_RandoMice
         public string InputData { get; set; } = string.Empty;
 
         public bool SubgroupSizesAreDefinedViaFormControls { get; set; } = true;
+
         public List<List<short>> SubgroupSizesOfEachBlock { get; set; } = new List<List<short>>();
 
         public ValidOrInvalid SubgroupSizesAreValid

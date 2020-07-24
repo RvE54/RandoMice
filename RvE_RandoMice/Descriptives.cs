@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -29,37 +29,32 @@ namespace RvE_RandoMice
     public class Descriptives
     {
         private int decimals = 2;
-        private double mean = Global.Settings.MissingValue;
-        private double sd = Global.Settings.MissingValue;
-        private double min = Global.Settings.MissingValue;
-        private double median = Global.Settings.MissingValue;
-        private double max = Global.Settings.MissingValue;
-        private double cv = Global.Settings.MissingValue;
-
         public Descriptives(int numberOfDecimalsForRounding)
         {
-            this.Decimals = numberOfDecimalsForRounding;
+            Decimals = numberOfDecimalsForRounding;
         }
+
         public void Clear()
         {
-            this.Mean = Global.Settings.MissingValue;
-            this.SD = Global.Settings.MissingValue;
-            this.Min = Global.Settings.MissingValue;
-            this.Median = Global.Settings.MissingValue;
-            this.Max = Global.Settings.MissingValue;
-            this.CV = Global.Settings.MissingValue;
+            Mean = Global.Settings.MissingValue;
+            SD = Global.Settings.MissingValue;
+            Min = Global.Settings.MissingValue;
+            Median = Global.Settings.MissingValue;
+            Max = Global.Settings.MissingValue;
+            CV = Global.Settings.MissingValue;
         }
-        public double Mean { get => mean; set => mean = value; }
+
+        public double Mean { get; set; } = Global.Settings.MissingValue;
         public double RoundedMean { get => Math.Round(Mean, Decimals, MidpointRounding.AwayFromZero); }
-        public double SD { get => sd; set => sd = value; }
+        public double SD { get; set; } = Global.Settings.MissingValue;
         public double RoundedSD { get => Math.Round(SD, Decimals, MidpointRounding.AwayFromZero); }
-        public double Min { get => min; set => min = value; }
+        public double Min { get; set; } = Global.Settings.MissingValue;
         public double RoundedMin { get => Math.Round(Min, Decimals, MidpointRounding.AwayFromZero); }
-        public double Median { get => median; set => median = value; }
+        public double Median { get; set; } = Global.Settings.MissingValue;
         public double RoundedMedian { get => Math.Round(Median, Decimals, MidpointRounding.AwayFromZero); }
-        public double Max { get => max; set => max = value; }
+        public double Max { get; set; } = Global.Settings.MissingValue;
         public double RoundedMax { get => Math.Round(Max, Decimals, MidpointRounding.AwayFromZero); }
-        public double CV { get => cv; set => cv = value; }
+        public double CV { get; set; } = Global.Settings.MissingValue;
         public int Decimals { get => decimals; private set => decimals = value; }
 
         public double? this[string attributeName]

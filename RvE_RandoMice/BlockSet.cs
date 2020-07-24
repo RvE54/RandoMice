@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -165,10 +165,17 @@ namespace RvE_RandoMice
                     //If one of the block means or CVs is invalid (== -999), the VariableRank is not included in the totalRank
                     //this means that this BlockSet has an unfair advantage.
                     //a better solution may be to give a penalty for invalid means or CVs, although that might introduce a bias
-                    double VariableRank = ((blockMeans.Max() - blockMeans.Min()) / SDs[i]); //VariableRank = "how many standard deviations do the maxValue and minValue differ?"
-                    VariableRank += (blockCVs.Max() - blockCVs.Min()); //then, add the difference in maxCV and minCV to the VariableRank, so that the software also matches on SD
-                    VariableRank *= RequestVariables()[i].Weight;
-                    totalRank += VariableRank; //totalRank is the sum of all valid VariableRanks
+                    double variableRank = 0;
+                    
+                    if (SDs[i] != 0) //In some rare cases, the SD of the block set may equal 0. In those cases blockMeans.Max() - blockMeans.Min() also equals 0.
+                                     //This check therefore ensures that the variableRank remains 0 and prevents that the variableRank and subsequently the totalRank becomes NaN.
+                    {
+                        variableRank = ((blockMeans.Max() - blockMeans.Min()) / SDs[i]); //VariableRank = "how many standard deviations do the maxValue and minValue differ?"
+                        variableRank += (blockCVs.Max() - blockCVs.Min()); //then, add the difference in maxCV and minCV to the VariableRank, so that the software also matches on SD
+                        variableRank *= RequestVariables()[i].Weight;
+                    }
+                    
+                    totalRank += variableRank; //totalRank is the sum of all valid VariableRanks
                 }
             }
             

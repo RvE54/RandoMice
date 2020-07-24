@@ -66,25 +66,28 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ViewHelpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CheckForUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.AboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainProgressBar = new System.Windows.Forms.ProgressBar();
             this.TheoreticalUniqueBlockSetsLabel = new System.Windows.Forms.Label();
             this.SetDesiredUniqueBlockSetsToCreateToMax = new System.Windows.Forms.Button();
             this.SettingsTabControl = new System.Windows.Forms.TabControl();
             this.BlocksTabPage = new System.Windows.Forms.TabPage();
-            this.NumberOfExperimentalUnitsPerBlockNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.NumberOfExperimentalUnitsPerBlockNumericUpDown = new RvE_RandoMice.MyNumericUpDown();
             this.UniqueSetsHelpPictureBox = new RvE_RandoMice.HelpPictureBox();
             this.DefineGroupNamesLabel = new System.Windows.Forms.Label();
-            this.RememberSetsNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.DesiredUniqueSetsNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent = new System.Windows.Forms.Button();
+            this.RememberSetsNumericUpDown = new RvE_RandoMice.MyNumericUpDown();
+            this.DesiredUniqueSetsNumericUpDown = new RvE_RandoMice.MyNumericUpDown();
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton = new System.Windows.Forms.Button();
             this.VariablesTabPage = new System.Windows.Forms.TabPage();
             this.NoVariablesAvailableYetLabel = new System.Windows.Forms.Label();
             this.VariableDecimalPlacesLabel = new System.Windows.Forms.Label();
             this.VariableWeightsLabel = new System.Windows.Forms.Label();
             this.VariableNamesLabel = new System.Windows.Forms.Label();
             this.SubgroupsTabPage = new System.Windows.Forms.TabPage();
-            this.PreferredSubgroupSizeNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.PreferredSubgroupSizeNumericUpDown = new RvE_RandoMice.MyNumericUpDown();
             this.MarkersOfExperimentalUnitsInputColumnNumberComboBox = new System.Windows.Forms.ComboBox();
             this.MarkersOfExperimentalUnitsInputColumnNumberLabel = new System.Windows.Forms.Label();
             this.SubgroupSizeLabel = new System.Windows.Forms.Label();
@@ -410,7 +413,7 @@
             // 
             this.SaveAsToolStripMenuItem.Name = "SaveAsToolStripMenuItem";
             this.SaveAsToolStripMenuItem.Size = new System.Drawing.Size(143, 22);
-            this.SaveAsToolStripMenuItem.Text = "Save as...";
+            this.SaveAsToolStripMenuItem.Text = "Save As...";
             this.SaveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
             // 
             // LoadToolStripMenuItem
@@ -486,15 +489,39 @@
             // HelpToolStripMenuItem
             // 
             this.HelpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ViewHelpToolStripMenuItem,
+            this.CheckForUpdatesToolStripMenuItem,
+            this.toolStripSeparator4,
             this.AboutToolStripMenuItem});
             this.HelpToolStripMenuItem.Name = "HelpToolStripMenuItem";
             this.HelpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.HelpToolStripMenuItem.Text = "Help";
             // 
+            // ViewHelpToolStripMenuItem
+            // 
+            this.ViewHelpToolStripMenuItem.Image = global::RvE_RandoMice.Properties.Resources.QuestionMark;
+            this.ViewHelpToolStripMenuItem.Name = "ViewHelpToolStripMenuItem";
+            this.ViewHelpToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl + F1";
+            this.ViewHelpToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.ViewHelpToolStripMenuItem.Text = "View Help";
+            this.ViewHelpToolStripMenuItem.Click += new System.EventHandler(this.ViewHelpToolStripMenuItem_Click);
+            // 
+            // CheckForUpdatesToolStripMenuItem
+            // 
+            this.CheckForUpdatesToolStripMenuItem.Name = "CheckForUpdatesToolStripMenuItem";
+            this.CheckForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.CheckForUpdatesToolStripMenuItem.Text = "Check for Updates";
+            this.CheckForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.CheckForUpdatesToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(176, 6);
+            // 
             // AboutToolStripMenuItem
             // 
             this.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem";
-            this.AboutToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.AboutToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.AboutToolStripMenuItem.Text = "About RandoMice";
             this.AboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
@@ -528,7 +555,6 @@
             this.MainToolTip.SetToolTip(this.SetDesiredUniqueBlockSetsToCreateToMax, "Set the desired number of unique block sets to the theoretical maximum, or to the" +
         " software\'s maximum.");
             this.SetDesiredUniqueBlockSetsToCreateToMax.UseVisualStyleBackColor = true;
-            this.SetDesiredUniqueBlockSetsToCreateToMax.EnabledChanged += new System.EventHandler(this.SetDesiredUniqueBlockSetsToCreateToMax_EnabledChanged);
             this.SetDesiredUniqueBlockSetsToCreateToMax.Click += new System.EventHandler(this.SetDesiredUniqueBlockSetsToCreateToMax_Click);
             // 
             // SettingsTabControl
@@ -553,7 +579,7 @@
             this.BlocksTabPage.Controls.Add(this.DefineGroupNamesLabel);
             this.BlocksTabPage.Controls.Add(this.RememberSetsNumericUpDown);
             this.BlocksTabPage.Controls.Add(this.DesiredUniqueSetsNumericUpDown);
-            this.BlocksTabPage.Controls.Add(this.SetDesiredUniqueBlockSetsToCreateTo99Percent);
+            this.BlocksTabPage.Controls.Add(this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton);
             this.BlocksTabPage.Controls.Add(this.BlockCountComboBox);
             this.BlocksTabPage.Controls.Add(this.SetDesiredUniqueBlockSetsToCreateToMax);
             this.BlocksTabPage.Controls.Add(this.BlockCountLabel);
@@ -670,16 +696,17 @@
             0});
             this.DesiredUniqueSetsNumericUpDown.ValueChanged += new System.EventHandler(this.DesiredUniqueSetsNumericUpDown_ValueChanged);
             // 
-            // SetDesiredUniqueBlockSetsToCreateTo99Percent
+            // SetDesiredUniqueBlockSetsToCreateTo99PercentButton
             // 
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent.Location = new System.Drawing.Point(376, 83);
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent.Name = "SetDesiredUniqueBlockSetsToCreateTo99Percent";
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent.Size = new System.Drawing.Size(36, 22);
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent.TabIndex = 7;
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent.Text = "99%";
-            this.MainToolTip.SetToolTip(this.SetDesiredUniqueBlockSetsToCreateTo99Percent, "Set the desired number of unique block sets to 99% of the theoretical maximum.");
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent.UseVisualStyleBackColor = true;
-            this.SetDesiredUniqueBlockSetsToCreateTo99Percent.Click += new System.EventHandler(this.SetDesiredUniqueBlockSetsToCreateTo99Percent_Click);
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.Enabled = false;
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.Location = new System.Drawing.Point(376, 83);
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.Name = "SetDesiredUniqueBlockSetsToCreateTo99PercentButton";
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.Size = new System.Drawing.Size(36, 22);
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.TabIndex = 7;
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.Text = "99%";
+            this.MainToolTip.SetToolTip(this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton, "Set the desired number of unique block sets to 99% of the theoretical maximum.");
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.UseVisualStyleBackColor = true;
+            this.SetDesiredUniqueBlockSetsToCreateTo99PercentButton.Click += new System.EventHandler(this.SetDesiredUniqueBlockSetsToCreateTo99Percent_Click);
             // 
             // VariablesTabPage
             // 
@@ -808,7 +835,6 @@
             this.CreateSubgroupsCheckBox.Text = "Create subgroups";
             this.CreateSubgroupsCheckBox.UseVisualStyleBackColor = true;
             this.CreateSubgroupsCheckBox.CheckedChanged += new System.EventHandler(this.CreateSubgroupsCheckBox_CheckedChanged);
-            this.CreateSubgroupsCheckBox.EnabledChanged += new System.EventHandler(this.CreateSubgroupsCheckBox_CheckedChanged);
             // 
             // MarkersHelpPictureBox
             // 
@@ -1278,7 +1304,7 @@
         private System.Windows.Forms.TabControl SettingsTabControl;
         private System.Windows.Forms.TabPage BlocksTabPage;
         private System.Windows.Forms.TabPage VariablesTabPage;
-        private System.Windows.Forms.Button SetDesiredUniqueBlockSetsToCreateTo99Percent;
+        private System.Windows.Forms.Button SetDesiredUniqueBlockSetsToCreateTo99PercentButton;
         private System.Windows.Forms.Label VariableNamesLabel;
         private System.Windows.Forms.Label VariableDecimalPlacesLabel;
         private System.Windows.Forms.Label VariableWeightsLabel;
@@ -1304,7 +1330,7 @@
         private System.Windows.Forms.ToolStripMenuItem TXTToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem NewToolStripMenuItem;
         private System.ComponentModel.BackgroundWorker ExportToFileBackGroundWorker;
-        private System.Windows.Forms.NumericUpDown RememberSetsNumericUpDown;
+        private MyNumericUpDown RememberSetsNumericUpDown;
         private System.Windows.Forms.ToolTip MainToolTip;
         private System.Windows.Forms.ToolStripMenuItem SaveToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
@@ -1326,12 +1352,15 @@
         private HelpPictureBox ExperimentalUnitNamesHelpPictureBox;
         private HelpPictureBox UniqueSetsHelpPictureBox;
         private HelpPictureBox MarkersHelpPictureBox;
-        private System.Windows.Forms.NumericUpDown DesiredUniqueSetsNumericUpDown;
-        private System.Windows.Forms.NumericUpDown NumberOfExperimentalUnitsPerBlockNumericUpDown;
-        private System.Windows.Forms.NumericUpDown PreferredSubgroupSizeNumericUpDown;
+        private MyNumericUpDown DesiredUniqueSetsNumericUpDown;
+        private MyNumericUpDown NumberOfExperimentalUnitsPerBlockNumericUpDown;
+        private MyNumericUpDown PreferredSubgroupSizeNumericUpDown;
         private System.Windows.Forms.TableLayoutPanel HorizontalTableLayoutPanel;
         private System.Windows.Forms.TableLayoutPanel VerticalTableLayoutPanel;
         private System.Windows.Forms.Panel ControlPanel1;
         private System.Windows.Forms.Timer ResizeFormTimer;
+        private System.Windows.Forms.ToolStripMenuItem CheckForUpdatesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripMenuItem ViewHelpToolStripMenuItem;
     }
 }

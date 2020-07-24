@@ -43,8 +43,8 @@
             this.AboutLabel.Name = "AboutLabel";
             this.AboutLabel.Size = new System.Drawing.Size(309, 88);
             this.AboutLabel.TabIndex = 1;
-            this.AboutLabel.Text = "Developed by R. van Eenige\r\n\r\nCopyright © 2019\r\nLeiden University Medical Center " +
-    "(LUMC), R. van Eenige\r\nand individual contributors.";
+            this.AboutLabel.Text = "Developed by R. van Eenige\r\n\r\nCopyright © 2019-2020\r\nLeiden University Medical Ce" +
+    "nter (LUMC), R. van Eenige\r\nand individual contributors.";
             this.AboutLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // VersionLabel
