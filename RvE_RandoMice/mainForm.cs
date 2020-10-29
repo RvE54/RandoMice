@@ -39,9 +39,10 @@ namespace RvE_RandoMice
     public partial class MainForm : Form
     {
         private readonly Stopwatch Stopwatch = new System.Diagnostics.Stopwatch();
-        private readonly string argumentFilePath = null;
+        private readonly string ArgumentFilePath = null;
         private bool SuppressWarningThatSubgroupSizesMayHaveChanged { get; set; } = true;
         private bool IsCreatingSubgroups { get; set; } = false;
+
         public MainForm(string[] arguments)
         {
             InitializeComponent();
@@ -90,7 +91,7 @@ namespace RvE_RandoMice
             //save the file path of the .rndm file that may have been passed as an argument for loading in MainForm_Load
             //the file cannot be loaded now directly because not all required components of MainForm have been instantiated yet
             if (arguments.Length != 0)
-                argumentFilePath = arguments[0];
+                ArgumentFilePath = arguments[0];
         }
 
         public int? SelectedBlockSetIndex
@@ -131,8 +132,8 @@ namespace RvE_RandoMice
             }
 
             //load the .rndm file that may have been passed as an argument
-            if (argumentFilePath != null)
-                LoadAndProcessExperiment(argumentFilePath, suppressLoadSuccessMessage: true);
+            if (ArgumentFilePath != null)
+                LoadAndProcessExperiment(ArgumentFilePath, suppressLoadSuccessMessage: true);
         }
 
         /// <summary>
@@ -277,7 +278,7 @@ namespace RvE_RandoMice
                     }
                 }
             }
-            
+
             return SaveState.NotNeeded;
         }
 
@@ -1526,7 +1527,7 @@ namespace RvE_RandoMice
             else if (e.Error != null)
             {
                 ProgressLabel.Text = " - Error!";
-                MessageBox.Show("Unknown error encountered, please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Unknown error encountered, please try again." + "\n\nMessage:" + e.Error.Message + "\nInnerException:" + e.Error.InnerException + "\nSource:" + e.Error.Source + "\nStackTrace:" + e.Error.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
@@ -2407,8 +2408,16 @@ namespace RvE_RandoMice
 
             //create new workbook
             Excel.Workbook xlWorkBook = xlExcel.Workbooks.Add(misValue);
-            xlWorkBook.Worksheets.Item[1].Delete(); //delete all existing worksheets
-            xlWorkBook.Worksheets.Item[1].Delete();
+
+            try
+            {
+                xlWorkBook.Worksheets.Item[1].Delete(); //delete all existing worksheets
+                xlWorkBook.Worksheets.Item[1].Delete();
+            }
+            catch
+            {
+                //do nothing, likely no Worksheet was found that could be deleted
+            }
 
             //try to save workbook to see if saving is possible
             try
@@ -2424,7 +2433,15 @@ namespace RvE_RandoMice
             //create new worksheet
             Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.Add(After: xlWorkBook.Sheets[xlWorkBook.Sheets.Count]);
             xlWorkSheet.Name = "Overview of set and ranks";
-            xlWorkBook.Worksheets.Item[1].Delete(); //delete existing worksheet "sheet1"
+
+            try
+            {
+                xlWorkBook.Worksheets.Item[1].Delete(); //delete existing worksheet "sheet1"
+            }
+            catch
+            {
+                //do nothing, likely no Worksheet was found that could be deleted
+            }
 
             //Paste block sets with ranks and optional markers to Excel
             PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetSetsAndRanksAsString(), xlWorkSheet, 1, 1);
@@ -2699,7 +2716,7 @@ namespace RvE_RandoMice
             else if (e.Error != null)
             {
                 ProgressLabel.Text = " - Error!"; //+ e.Error.Message;
-                MessageBox.Show("Unknown error encountered, please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Unknown error encountered, please try again." + "\n\nMessage:" + e.Error.Message + "\nInnerException:" + e.Error.InnerException + "\nSource:" + e.Error.Source + "\nStackTrace:" + e.Error.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {

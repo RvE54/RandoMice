@@ -251,15 +251,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:RandoMice"
-        "ProductCode" = "8:{D081DAFC-B36B-496B-BA1B-C622B2C8C943}"
-        "PackageCode" = "8:{DB84A76A-EE18-4C1C-A375-3288A506E319}"
+        "ProductCode" = "8:{4A4C6360-1796-4F65-9C2A-A397AE9D9B19}"
+        "PackageCode" = "8:{A59F371A-646E-412E-8C02-9557B4B76EEF}"
         "UpgradeCode" = "8:{67074A1F-E8EA-44A4-8CEA-E64A1125CE6F}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.1.0"
+        "ProductVersion" = "8:1.1.1"
         "Manufacturer" = "8:LUMC"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -372,7 +372,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B1E6DD47B5A64FF69F10088EB9B7411D"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5847B68056E34A8C8EFEFF9DE191F7AE"
             {
             "Name" = "8:RandoMice"
             "Arguments" = "8:"

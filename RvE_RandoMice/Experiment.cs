@@ -210,22 +210,22 @@ namespace RvE_RandoMice
 
             try
             {
-            //try to serialize finishedExperiment to stream
-            IFormatter formatter = new BinaryFormatter();
+                //try to serialize finishedExperiment to stream
+                IFormatter formatter = new BinaryFormatter();
 
-            using (Stream stream = new FileStream(fileName,
-                                        FileMode.Create,
+                using (Stream stream = new FileStream(fileName,
+                                            FileMode.Create,
                                         FileAccess.Write, FileShare.None))
-            {
-                formatter.Serialize(stream, this);
-                stream.Close();
-            }
+                {
+                    formatter.Serialize(stream, this);
+                    stream.Close();
+                }
 
-            saveState = SaveState.Success;
+                saveState = SaveState.Success;
 
-            RunCountAtLastSave = Runs.Count(); //save the number of runs currently present
-            HasChangedSinceLastSave = false;
-            SaveFilePath = fileName;
+                RunCountAtLastSave = Runs.Count(); //save the number of runs currently present
+                HasChangedSinceLastSave = false;
+                SaveFilePath = fileName;
             }
             catch
             {
@@ -285,6 +285,7 @@ namespace RvE_RandoMice
                 return subgroupSizesAreValid;
             } 
         }
+
         public bool CreateSubgroups { get; set; } = false;
 
         public bool ExperimentalUnitsHaveMarkers { get; set; } = false;
