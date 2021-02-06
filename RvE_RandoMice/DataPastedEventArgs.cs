@@ -19,26 +19,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace RvE_RandoMice
 {
-    public partial class LicenceForm : Form
+    public class DataPastedEventArgs : EventArgs
     {
-        public LicenceForm()
-        {
-            InitializeComponent();
-        }
+        public bool WarnUserForInvalidDataPoints { get; private set; } = false;
 
-        private void CloseButton_Click(object sender, EventArgs e)
+        public bool AskUserIfDatesShouldBeConvertedToValues { get; private set; } = false;
+
+        public DataPastedEventArgs(bool warnUserForInvalidDataPoints, bool askUserIfDatesShouldBeConvertedToValues)
         {
-            this.Close();
+            WarnUserForInvalidDataPoints = warnUserForInvalidDataPoints;
+            AskUserIfDatesShouldBeConvertedToValues = askUserIfDatesShouldBeConvertedToValues;
         }
     }
 }

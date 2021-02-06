@@ -403,7 +403,6 @@
             // 
             this.SaveToolStripMenuItem.Image = global::RvE_RandoMice.Properties.Resources.Save;
             this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
-            this.SaveToolStripMenuItem.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.SaveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.SaveToolStripMenuItem.Size = new System.Drawing.Size(143, 22);
             this.SaveToolStripMenuItem.Text = "Save";
@@ -481,6 +480,7 @@
             // ExitToolStripMenuItem
             // 
             this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
+            this.ExitToolStripMenuItem.ShortcutKeyDisplayString = "";
             this.ExitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
             this.ExitToolStripMenuItem.Size = new System.Drawing.Size(143, 22);
             this.ExitToolStripMenuItem.Text = "Exit";
@@ -501,27 +501,28 @@
             // 
             this.ViewHelpToolStripMenuItem.Image = global::RvE_RandoMice.Properties.Resources.QuestionMark;
             this.ViewHelpToolStripMenuItem.Name = "ViewHelpToolStripMenuItem";
-            this.ViewHelpToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl + F1";
-            this.ViewHelpToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.ViewHelpToolStripMenuItem.ShortcutKeyDisplayString = "";
+            this.ViewHelpToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F1)));
+            this.ViewHelpToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
             this.ViewHelpToolStripMenuItem.Text = "View Help";
             this.ViewHelpToolStripMenuItem.Click += new System.EventHandler(this.ViewHelpToolStripMenuItem_Click);
             // 
             // CheckForUpdatesToolStripMenuItem
             // 
             this.CheckForUpdatesToolStripMenuItem.Name = "CheckForUpdatesToolStripMenuItem";
-            this.CheckForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.CheckForUpdatesToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
             this.CheckForUpdatesToolStripMenuItem.Text = "Check for Updates";
             this.CheckForUpdatesToolStripMenuItem.Click += new System.EventHandler(this.CheckForUpdatesToolStripMenuItem_Click);
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(176, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(170, 6);
             // 
             // AboutToolStripMenuItem
             // 
             this.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem";
-            this.AboutToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
+            this.AboutToolStripMenuItem.Size = new System.Drawing.Size(173, 22);
             this.AboutToolStripMenuItem.Text = "About RandoMice";
             this.AboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
@@ -1009,7 +1010,7 @@
             this.InputDataGridView.RowHeadersVisible = false;
             this.InputDataGridView.Size = new System.Drawing.Size(478, 84);
             this.InputDataGridView.TabIndex = 48;
-            this.InputDataGridView.DataPasted += new System.EventHandler(this.InputDataGridView_DataPasted);
+            this.InputDataGridView.DataPasted += new System.EventHandler<RvE_RandoMice.DataPastedEventArgs>(this.InputDataGridView_DataPasted);
             // 
             // ExperimentalUnitNamesHelpPictureBox
             // 
@@ -1072,7 +1073,7 @@
             this.BlockSetsResultsDataGridView.RowHeadersVisible = false;
             this.BlockSetsResultsDataGridView.Size = new System.Drawing.Size(286, 144);
             this.BlockSetsResultsDataGridView.TabIndex = 0;
-            this.BlockSetsResultsDataGridView.DataPasted += new System.EventHandler(this.BlockSetsResultsDataGridView_DataPasted);
+            this.BlockSetsResultsDataGridView.DataPasted += new System.EventHandler<RvE_RandoMice.DataPastedEventArgs>(this.BlockSetsResultsDataGridView_DataPasted);
             this.BlockSetsResultsDataGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.BlockSetsResultsDataGridView_CellClick);
             this.BlockSetsResultsDataGridView.SelectionChanged += new System.EventHandler(this.BlockSetsResultsDataGridView_SelectionChanged);
             // 
@@ -1234,7 +1235,6 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainForm_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainForm_DragEnter);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.MainMenuStrip.ResumeLayout(false);
             this.MainMenuStrip.PerformLayout();
             this.SettingsTabControl.ResumeLayout(false);

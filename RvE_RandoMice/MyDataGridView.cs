@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -51,7 +51,7 @@ namespace RvE_RandoMice
 
         public bool AllowSorting { get; set; } = true;
 
-        public event EventHandler DataPasted;
+        public event EventHandler<DataPastedEventArgs> DataPasted;
 
         public int? CurrentlySelectedValue { get; set; } = null;
 
@@ -146,7 +146,7 @@ namespace RvE_RandoMice
             {
                 //create a copy of the current DataGridView to avoid having to change the current selection
                 MyDataGridView copy = new MyDataGridView();
-                copy.PasteString(PastedString);
+                copy.PasteString(this.ToString());
                 copy.SelectAll();
                 Clipboard.SetDataObject(copy.GetClipboardContent());
             }
@@ -202,7 +202,11 @@ namespace RvE_RandoMice
         /// </summary>
         /// <param name="stringToPaste">A string that is separated by tabs and newlines, containing
         /// the data that should be pasted to the DataGridView.</param>
-        public void PasteString(string stringToPaste)
+        /// <param name="warnUserForInvalidDataPoints">A bool to indicate whether or not the user should
+        /// be warned if the pasted string contains invalid data points. Default is false.</param>
+        /// <param name="askUserIfDatesShouldBeConvertedToValues">A bool to indicate whether or not the user should
+        /// be asked if strings containing a valid DateTime should be converted into values. Default is false.</param>
+        public void PasteString(string stringToPaste, bool warnUserForInvalidDataPoints = false, bool askUserIfDatesShouldBeConvertedToValues = false)
         {
             Rows.Clear();
             Columns.Clear();
@@ -246,7 +250,7 @@ namespace RvE_RandoMice
             AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
 
             //Raise OnDataPasted event
-            OnDataPasted(EventArgs.Empty);
+            OnDataPasted(new DataPastedEventArgs(warnUserForInvalidDataPoints, askUserIfDatesShouldBeConvertedToValues));
 
             //Save pasted string in memory to allow 
             PastedString = stringToPaste;
@@ -259,7 +263,7 @@ namespace RvE_RandoMice
         /// </summary>
         public void PasteClipboard()
         {
-            PasteString(GetPastableTextAsStringFromClipboard());
+            PasteString(GetPastableTextAsStringFromClipboard(), warnUserForInvalidDataPoints: true, askUserIfDatesShouldBeConvertedToValues: true);
         }
 
         private string GetPastableTextAsStringFromClipboard()
@@ -293,9 +297,9 @@ namespace RvE_RandoMice
                 displayDataGridViewDetails.ShowDialog();
         }
 
-        protected virtual void OnDataPasted(EventArgs e)
+        protected virtual void OnDataPasted(DataPastedEventArgs e)
         {
-            EventHandler handler = DataPasted;
+            EventHandler<DataPastedEventArgs> handler = DataPasted;
             handler?.Invoke(this, e);
         }
 
@@ -309,7 +313,44 @@ namespace RvE_RandoMice
             AllowSorting = sourceDataGridView.AllowSorting;
             ReadOnly = sourceDataGridView.ReadOnly;
             ClipboardCopyMode = sourceDataGridView.ClipboardCopyMode;
-            PasteString(sourceDataGridView.PastedString);
+            PasteString(sourceDataGridView.ToString());
+
+            for (int i = 0; i < sourceDataGridView.ColumnCount; i++)
+            {
+                for (int j = 0; j < sourceDataGridView.RowCount; j++)
+                    Rows[j].Cells[i].Style.BackColor = sourceDataGridView.Rows[j].Cells[i].Style.BackColor;  
+            }
+        }
+
+        public override string ToString()
+        {
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            for (int i = 0; i < ColumnCount; i++)
+            {
+                stringBuilder.Append(Columns[i].HeaderText);
+
+                if (i < ColumnCount - 1)
+                    stringBuilder.Append("\t");
+            }
+
+            stringBuilder.Append("\r\n");
+
+            for (int j = 0; j < RowCount; j++)
+            {
+                for (int i = 0; i < ColumnCount; i++)
+                {
+                    stringBuilder.Append(Rows[j].Cells[i].Value.ToString());
+
+                    if (i < ColumnCount - 1)
+                        stringBuilder.Append("\t");
+                }
+
+                stringBuilder.Append("\r\n");
+            }
+
+            return stringBuilder.ToString();
         }
     }
 }

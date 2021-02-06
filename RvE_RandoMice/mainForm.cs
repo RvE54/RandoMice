@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2020 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -116,24 +116,7 @@ namespace RvE_RandoMice
         /// </summary>
         private void MainForm_Load(object sender, EventArgs e)
         {
-            //resize screen if needed
-            if (this.Width > Screen.GetWorkingArea(this).Width && this.Height > Screen.GetWorkingArea(this).Height)
-            {
-                this.Width = Screen.GetWorkingArea(this).Width;
-                this.Height = Screen.GetWorkingArea(this).Height;
-                this.WindowState = FormWindowState.Maximized;
-            }
-            else
-            {
-                if (this.Width > Screen.GetWorkingArea(this).Width)
-                    this.Width = Screen.GetWorkingArea(this).Width;
-                else if (this.Height > Screen.GetWorkingArea(this).Height)
-                    this.Height = Screen.GetWorkingArea(this).Height;
-            }
 
-            //load the .rndm file that may have been passed as an argument
-            if (ArgumentFilePath != null)
-                LoadAndProcessExperiment(ArgumentFilePath, suppressLoadSuccessMessage: true);
         }
 
         /// <summary>
@@ -176,26 +159,6 @@ namespace RvE_RandoMice
         }
 
         /// <summary>
-        /// MainForm KeyDown event allowing for save with ctrl+v, close with alt+F4 etc.
-        /// </summary>
-        private void MainForm_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.N && e.Control) //Reset UI on Ctrl+N
-                ResetUI();
-            else if (e.KeyCode == Keys.O && e.Control) //Load (open) data on Ctrl+O
-            {
-                if (SaveExperimentIfPossibleNeededAndWanted("Loading data...") != SaveState.Cancelled)
-                    LoadAndProcessExperiment();
-            }
-            else if (e.KeyCode == Keys.S && e.Control) //Save FinishedExperiment on Ctrl+S
-                ShowSaveMessageBox(SaveExperimentIfPossibleNeededAndWanted(forceSave: true));
-            else if (e.KeyCode == Keys.F1 && e.Control) //Navigate to the readme page on GitHub
-                Process.Start(Global.Settings.ReadmePage);
-            else if (e.KeyCode == Keys.F4 && e.Alt) //Exit on Alt+F4
-                this.Close();
-        }
-
-        /// <summary>
         /// Handle an UI Exception by showing an error message to the user,
         /// and try to rescue any data by asking the user to save the results.
         /// </summary>
@@ -230,7 +193,7 @@ namespace RvE_RandoMice
             Application.Exit();
         }
 
-        private void BlockSetsResultsDataGridView_DataPasted(object sender, EventArgs e)
+        private void BlockSetsResultsDataGridView_DataPasted(object sender, DataPastedEventArgs e)
         {
             ResizeFormTimer.Start();
         }
@@ -746,9 +709,9 @@ namespace RvE_RandoMice
         #endregion
 
         #region createExperimentalUnits,Blocks,SubgroupsAndVariables
-        private void InputDataGridView_DataPasted(object sender, EventArgs e)
+        private void InputDataGridView_DataPasted(object sender, DataPastedEventArgs e)
         {
-            InterpretPastedData();
+            InterpretPastedData(e.WarnUserForInvalidDataPoints, e.AskUserIfDatesShouldBeConvertedToValues);
         }
 
         /// <summary>
@@ -798,17 +761,30 @@ namespace RvE_RandoMice
         
             Cursor.Current = Cursors.Arrow;
         }
-        
+
         /// <summary>
         /// Clears any existing Variables, then
-        /// iterates through each column in the inputDataGridView,
+        /// iterates through each cell in the inputDataGridView,
         /// and defines new Variables to add to currentExperiment.
+        /// If wanted, the user will be warned if invalid data is
+        /// encountered. Also if wanted, the user may be asked if strings
+        /// that can be parsed as dates should be converted to values.
         /// </summary>
-        private void CreateVariablesOfCurrentExperiment(bool inputDataGridViewDataHasChanged)
+        /// <param name="inputDataGridViewDataHasChanged">A bool to indicate whether or not the values in the 
+        /// InputDataGridView has changed. If true, existing Variables will be re-used, else new Variables will be created.</param>
+        /// <param name="warnUserForInvalidDataPoints">A bool to indicate whether or not the user should
+        /// be warned if the pasted string contains invalid data points. Default is false.</param>
+        /// <param name="askUserIfDatesShouldBeConvertedToValues">A bool to indicate whether or not the user should
+        /// be asked if strings containing a valid DateTime should be converted into values. Default is false.</param>
+        private void CreateVariablesOfCurrentExperiment(bool inputDataGridViewDataHasChanged, bool warnUserForInvalidDataPoints = false, bool askUserIfDatesShouldBeConvertedToValues = false)
         {
             int oldVariableCount = Global.CurrentExperiment.ActiveVariables.Count;
             List<Variable> newVariables = new List<Variable>();
-        
+            bool userIsWarned = false;
+            bool? convertDateTimeStringsToValues = null;
+            DateTime now = DateTime.Now;
+            int dateDecimalplaces = 2;
+
             for (int i = 0; i < InputDataGridView.ColumnCount; i++)
             {
                 if (!inputDataGridViewDataHasChanged && Global.CurrentExperiment.AllVariables.Select(Variable => Variable.InputDataGridViewColumnNumber).ToList().Contains((short)i))
@@ -828,18 +804,53 @@ namespace RvE_RandoMice
         
                     for (int j = 0; j < InputDataGridView.RowCount; j++)
                     {
-                        if (double.TryParse(InputDataGridView.Rows[j].Cells[i].Value.ToString(), NumberStyles.Any, CultureInfo.CurrentCulture, out double VariableValue))
+                        if (double.TryParse(InputDataGridView.Rows[j].Cells[i].Value.ToString(), NumberStyles.Any, CultureInfo.CurrentCulture, out double Value))
                         {
-                            sumDecimals += Calc.GetDecimalPlaces(VariableValue);
+                            sumDecimals += Calc.GetDecimalPlaces(Value);
                             VariableValuesCount++;
                         }
-                        else if (double.TryParse(InputDataGridView.Rows[j].Cells[i].Value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out VariableValue))
+                        else if (double.TryParse(InputDataGridView.Rows[j].Cells[i].Value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out Value))
                         {
-                            sumDecimals += Calc.GetDecimalPlaces(VariableValue);
+                            sumDecimals += Calc.GetDecimalPlaces(Value);
                             VariableValuesCount++;
+                        }
+                        else if(askUserIfDatesShouldBeConvertedToValues && DateTime.TryParse(InputDataGridView.Rows[j].Cells[i].Value.ToString(), CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime Date))
+                        {
+                            if(!convertDateTimeStringsToValues.HasValue)
+                                convertDateTimeStringsToValues = MessageBox.Show("Some data points are recognized as dates and need to be converted to values to be used by RandoMice in further steps.\n\n" +
+                                    "Would you like RandoMice to convert the dates for you? " +
+                                    "The unit will be hours; " +
+                                    "please manually check whether RandoMice performed this conversion correctly.", 
+                                    "Convert dates into values?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
+
+                            if (convertDateTimeStringsToValues.Value == true)
+                                InputDataGridView.Rows[j].Cells[i].Value = Math.Round((now - Date).TotalHours, dateDecimalplaces, MidpointRounding.AwayFromZero);
+                            else
+                                InputDataGridView.Rows[j].Cells[i].Style.BackColor = Color.Bisque;
+
+                            sumDecimals += dateDecimalplaces;
+                            VariableValuesCount++;
+                        }
+                        else
+                        {
+                            if(warnUserForInvalidDataPoints && !userIsWarned)
+                                MessageBox.Show("Warning: RandoMice cannot interpret all data points as *values*. " +
+                                    "Please be aware that RandoMice will thus ignore these data points in further steps, " +
+                                    "unless you select their column(s) to be used as unique names of experimental units and/or as markers.\n\n" +
+                                    "All applicable cells are highlighted.", 
+                                    "Data in wrong format", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                            //highlight cells containing data that could not be interpreted
+                            InputDataGridView.Rows[j].Cells[i].Style.BackColor = Color.Bisque;
+
+                            userIsWarned = true;
                         }
                     }
-        
+
+                    //if date values were converted to values, adapt the PastedString in the CurrentExperiment accordingly
+                    if (convertDateTimeStringsToValues.HasValue)
+                        Global.CurrentExperiment.InputData = InputDataGridView.ToString();
+
                     //calculate the average number of decimal places (rounded up) of the values of the current Variable
                     byte VariableDecimals = (byte)Math.Ceiling((double)sumDecimals / (double)VariableValuesCount);
         
@@ -1207,8 +1218,8 @@ namespace RvE_RandoMice
             }
 
             //create new ExperimentalUnits and Variables, as the data in InputDataGridView needs to be re-interpreted.
+            CreateVariablesOfCurrentExperiment(inputDataGridViewDataHasChanged: false); 
             CreateExperimentalUnitsOfCurrentExperiment();
-            CreateVariablesOfCurrentExperiment(inputDataGridViewDataHasChanged: false);
         }
 
         /// <summary>
@@ -1227,9 +1238,9 @@ namespace RvE_RandoMice
                 Global.NamesOfExperimentalUnitsInputColumnNumber = -1;
             else
                 Global.NamesOfExperimentalUnitsInputColumnNumber = int.Parse(NamesOfExperimentalUnitsInputColumnNumberComboBox.Text) - 1;
-
-            CreateExperimentalUnitsOfCurrentExperiment();
+            
             CreateVariablesOfCurrentExperiment(inputDataGridViewDataHasChanged: false);
+            CreateExperimentalUnitsOfCurrentExperiment();
         }
         #endregion
 
@@ -1271,17 +1282,17 @@ namespace RvE_RandoMice
             else
                 backgroundWorkerCanStart = true;
 
-            if (Global.CurrentExperiment.AllExperimentalUnits.Select(experimentalUnit => experimentalUnit.Name.Replace(" ", "")).ToList().Distinct().Count() < Global.CurrentExperiment.AllExperimentalUnits.Count)
+            if (backgroundWorkerCanStart && Global.CurrentExperiment.AllExperimentalUnits.Select(experimentalUnit => experimentalUnit.Name.Replace(" ", "")).ToList().Distinct().Count() < Global.CurrentExperiment.AllExperimentalUnits.Count)
             {
                 //check if the names of experimental units are unique. If that is not the case, the user cannot distinguish between those experimental units when reviewing the results.
-                DialogResult dialogResult = MessageBox.Show("Some experimental units have identical names. It will be impossible" +
+                DialogResult dialogResult = MessageBox.Show("Some experimental units have identical names. It will be impossible " +
                     "to distinguish those experimental units when reviewing the results. Continue anyways?",
                         "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
 
                 backgroundWorkerCanStart = (dialogResult == DialogResult.Yes);
             }
 
-            if (Global.DesiredUniqueSets > Global.TheoreticalUniqueBlockSets)
+            if (backgroundWorkerCanStart && Global.DesiredUniqueSets > Global.TheoreticalUniqueBlockSets)
             {
                 //check if it is possible to find the desired number of unique sets
                 DialogResult dialogResult = MessageBox.Show(String.Format("{0} blocks cannot be created, as theoretically only {1} unique sets exist.\n" +
@@ -2326,12 +2337,16 @@ namespace RvE_RandoMice
         /// <summary>
         /// Resets various ComboBoxes to default values.
         /// </summary>
+        /// <param name="warnUserForInvalidDataPoints">A bool to indicate whether or not the user should
+        /// be warned if the pasted string contains invalid data points. Default is false.</param>
+        /// <param name="askUserIfDatesShouldBeConvertedToValues">A bool to indicate whether or not the user should
+        /// be asked if strings containing a valid DateTime should be converted into values. Default is false.</param>
         /// <remarks>For example, this method needs to be called after the user changes data of the InputDataGridView.</remarks>
-        public void InterpretPastedData()
+        public void InterpretPastedData(bool warnUserForInvalidDataPoints = false, bool askUserIfDatesShouldBeConvertedToValues = false)
         {
             //make sure ExperimentalUnits and Variables are up to date
+            CreateVariablesOfCurrentExperiment(inputDataGridViewDataHasChanged: true, warnUserForInvalidDataPoints, askUserIfDatesShouldBeConvertedToValues);
             CreateExperimentalUnitsOfCurrentExperiment();
-            CreateVariablesOfCurrentExperiment(inputDataGridViewDataHasChanged: true);
 
             //empty and re-fill comboboxes
             ResetComboBox(BlockCountComboBox, newMinValue: 2, newItemsCount: Math.Min(Global.CurrentExperiment.AllExperimentalUnits.Count - 1, Global.Settings.MaximalNumberOfBlocks - 1), defaultSelectedIndex: 0);
@@ -2353,8 +2368,8 @@ namespace RvE_RandoMice
                 NumberOfExperimentalUnitsPerBlockNumericUpDown.Maximum = NumberOfExperimentalUnitsPerBlockNumericUpDown.Minimum;
 
             //update ExperimentalUnits and Variables, because the markerInputColumn and nameInputColumn are reset above
+            CreateVariablesOfCurrentExperiment(inputDataGridViewDataHasChanged: true, warnUserForInvalidDataPoints: false, askUserIfDatesShouldBeConvertedToValues: false);
             CreateExperimentalUnitsOfCurrentExperiment();
-            CreateVariablesOfCurrentExperiment(inputDataGridViewDataHasChanged: true);
 
             //warnings are suppressed in ResetCombobox().
             //so, finally if needed warn the users that subgroup sizes may have changed once.
