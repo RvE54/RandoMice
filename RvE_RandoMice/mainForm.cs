@@ -112,11 +112,28 @@ namespace RvE_RandoMice
 
         #region formEvents
         /// <summary>
-        /// Resizes working area if needed.
+        /// Resizes working area if needed. Loads the .rndm file, if passed as an argument.
         /// </summary>
         private void MainForm_Load(object sender, EventArgs e)
         {
+            //resize screen if needed
+            if (this.Width > Screen.GetWorkingArea(this).Width && this.Height > Screen.GetWorkingArea(this).Height)
+            {
+                this.Width = Screen.GetWorkingArea(this).Width;
+                this.Height = Screen.GetWorkingArea(this).Height;
+                this.WindowState = FormWindowState.Maximized;
+            }
+            else
+            {
+                if (this.Width > Screen.GetWorkingArea(this).Width)
+                    this.Width = Screen.GetWorkingArea(this).Width;
+                else if (this.Height > Screen.GetWorkingArea(this).Height)
+                    this.Height = Screen.GetWorkingArea(this).Height;
+            }
 
+            //load the .rndm file that may have been passed as an argument
+            if (ArgumentFilePath != null)
+                LoadAndProcessExperiment(ArgumentFilePath, suppressLoadSuccessMessage: true);
         }
 
         /// <summary>
