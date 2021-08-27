@@ -42,6 +42,8 @@ namespace RvE_RandoMice
         public static Experiment FinishedExperiment { get; set; }
         public static Settings Settings { get; set; }
         public static NumberFormatInfo CultureNumberFormatInfo { get; } = CultureInfo.CurrentCulture.NumberFormat; // Gets a NumberFormatInfo associated with the current culture.
+        public static List<(Control Control, bool OriginalEnabledState)> ControlsAndEnabledStates { get; set; } = new List<(Control Control, bool OriginalEnabledState)>();
+
 
         private static int groupID = 0;
         public static int GroupID

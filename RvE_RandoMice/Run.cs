@@ -536,6 +536,76 @@ namespace RvE_RandoMice
             return output.ToString();
         }
 
+        /// <summary>
+        /// Gets a copyable string seperated by tabs and newlines,
+        /// containing the names and values of variables of all ExperimentalUnits
+        /// from each BlockOfExperimentalUnits within a desired BlockSet.
+        /// </summary>
+        /// <param name="setNumber">The index of the desired BlockSet.</param>
+        /// <param name="copyToClipboard">Optional bool that must be true if the output should be
+        /// copied to the clipboard. Default is false.</param>
+        /// <returns>A string seperated by tabs and newlines, containing
+        /// the names and values of variables of all ExperimentalUnits
+        /// from each BlockOfExperimentalUnits within a desired BlockSet.</returns>
+        /// <remarks>Example of a return string:
+        /// Block 1\r\n
+        /// Name of experimental unit\tVariable1\r\n
+        /// 4\t18\t0,50\r\n
+        /// 6\t11\t0,48\r\n
+        /// Block 2\r\n
+        /// Name of experimental unit\tVariable1\r\n
+        /// 1\t0,60\r\n
+        /// 5\t0,65
+        /// </remarks>
+        public string GetNamesAndVariablesOfExperimentalUnitsPerBlockAsString(int setNumber, bool copyToClipboard = false)
+        {
+            string newline = "\r\n";
+            string delimiter = "\t";
+            StringBuilder output = new StringBuilder(null);
+
+            string variableNames = string.Join(delimiter, OnRequestVariables().Select(variable => variable.Name).ToList()); 
+
+            for (int i = 0; i < BlockSets[setNumber].BlocksOfExperimentalUnits.Count; i++)
+            {
+                output.Append(BlockSets[setNumber].Groups[i].Name);
+                output.Append(newline);
+
+                output.Append("Name of experimental unit");
+                output.Append(delimiter);
+
+                if (OnRequestExperimentalUnitsHaveMarker())
+                {
+                    output.Append("Marker");
+                    output.Append(delimiter);
+                }
+
+                output.Append(variableNames);
+
+                for (int j = 0; j < BlockSets[setNumber].BlocksOfExperimentalUnits[i].ExperimentalUnits.Count; j++)
+                {
+                    output.Append(newline);
+
+                    output.Append(BlockSets[setNumber].BlocksOfExperimentalUnits[i].ExperimentalUnits[j].Name);
+                    output.Append(delimiter);
+
+                    if (OnRequestExperimentalUnitsHaveMarker())
+                    {
+                        output.Append(BlockSets[setNumber].BlocksOfExperimentalUnits[i].ExperimentalUnits[j].Marker);
+                        output.Append(delimiter);
+                    }
+
+                    output.Append(string.Join(delimiter, BlockSets[setNumber].BlocksOfExperimentalUnits[i].ExperimentalUnits[j].Values.Select(value => value.ToString())));
+                }
+
+                output.Append(newline);
+            }
+
+            if (copyToClipboard)
+                Clipboard.SetDataObject(output);
+
+            return output.ToString();
+        }
+
         public bool CheckForUnicity { get; set; } = true;
 
         /// <summary>

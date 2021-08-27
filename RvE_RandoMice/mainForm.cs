@@ -312,6 +312,13 @@ namespace RvE_RandoMice
 
         #region manipulateControls
 
+        /// <summary>
+        /// Finds all Child Controls of a provided Parent Control.
+        /// </summary>
+        /// <param name="parentControl">A Control of which its Child Controls should be returned.</param>
+        /// <param name="includeContainerControls">A bool indicating if the Parent Control must be returned in addition to its Child Controls.</param>
+        /// <returns>A list of Child Controls of a Parent Control (optionally including the Parent Control itself),
+        /// or only the Parent Control if no Child Controls are present.</returns>
         private List<Control> GetChildControls(Control parentControl, bool includeContainerControls)
         {
             List<Control> childControls = new List<Control>(parentControl.Controls.OfType<Control>());
@@ -335,11 +342,13 @@ namespace RvE_RandoMice
         /// Enables or disables all controls in the current Form and its containers, except for Labels and containers themselves.
         /// </summary>
         /// <param name="enableOrDisable">A bool which should reflect the desired control.Enabled state.</param>
-        private void EnableOrDisableAllControls(EnableOrDisable enableOrDisable)
+        /// <returns>A list of tuples containing each altered Control and its original Enabled state.</returns>
+        private List<(Control alteredControls, bool originalEnabledState)> EnableOrDisableAllControls(EnableOrDisable enableOrDisable)
         {
             //add all controls within the current Form
             List<Control> formControls = new List<Control>(this.Controls.OfType<Control>());
             List<Control> allControls = new List<Control>();
+            List<(Control Control, bool OriginalEnabledState)> alteredControlsAndOriginalEnabledStates = new List<(Control Control, bool OriginalEnabledState)>();
             bool includeContainerControls = enableOrDisable == EnableOrDisable.Enable;
 
             //add all controls within container controls
@@ -350,7 +359,24 @@ namespace RvE_RandoMice
             foreach (Control control in allControls)
             {
                 if (control.GetType() != typeof(Label) && !control.IsDisposed)
+                {
+                    alteredControlsAndOriginalEnabledStates.Add((control, control.Enabled));
                     control.Invoke(new Action(() => { control.Enabled = Convert.ToBoolean(enableOrDisable); }));
+                }
+            }
+
+            return alteredControlsAndOriginalEnabledStates;
+        }
+
+        /// <summary>
+        /// Reverts the Enabled state of each Control from a list of tuples.
+        /// </summary>
+        /// <param name="controlsAndOriginalEnabledStates">A list of tuples containing each Control and its OriginalEnabledState that needs to be reverted.</param>
+        private void RevertEnabledStateOfControls(List<(Control Control, bool OriginalEnabledState)> controlsAndOriginalEnabledStates)
+        {
+            foreach (var controlAndOriginalEnabledState in controlsAndOriginalEnabledStates)
+            {
+                controlAndOriginalEnabledState.Control.Invoke(new Action(() => { controlAndOriginalEnabledState.Control.Enabled = controlAndOriginalEnabledState.OriginalEnabledState; }));
             }
         }
 
@@ -622,7 +648,6 @@ namespace RvE_RandoMice
                 //check if the desired NumericUpDown already exists
                 string nameOfNumericUpDownToFind = Global.Settings.SubgroupSizeNumericUpDownNameBasis + currentBlockNumber.ToString() + "." + newSubgroupNumber.ToString();
                 NumericUpDown newSubgroupSizeNumericUpDown = subgroupSizesTabPage.Controls.OfType<NumericUpDown>().Where(control => control.Name == nameOfNumericUpDownToFind).FirstOrDefault();
-                bool numericUpDownWasNewlyCreated = (nameOfNumericUpDownToFind == null);
 
                 if (newSubgroupSizeNumericUpDown == null)
                 {
@@ -1202,7 +1227,7 @@ namespace RvE_RandoMice
                     if (CreateSubgroupsCheckBox.Checked)
                     {
                         subgroupSizes.AddRange(SettingsTabControl.TabPages[Global.Settings.SubgroupSizesTabPageName].Controls.OfType<NumericUpDown>()
-                            .Where(numericUpDown => numericUpDown.Name.Contains(Global.Settings.SubgroupSizeNumericUpDownNameBasis + (i + 1).ToString()))
+                            .Where(numericUpDown => numericUpDown.Name.Contains(Global.Settings.SubgroupSizeNumericUpDownNameBasis + (i + 1).ToString() + "."))
                             .Select(numericUpDown => (short)numericUpDown.Value).ToList());
                     }
 
@@ -1375,7 +1400,7 @@ namespace RvE_RandoMice
 
             //lock controls
             Control[] controlsToEnable = { AbortRunButton, ShowResultsButton, MainProgressBar };
-            EnableOrDisableAllControls(EnableOrDisable.Disable);
+            Global.ControlsAndEnabledStates = EnableOrDisableAllControls(EnableOrDisable.Disable);
             EnableOrDisableControls(EnableOrDisable.Enable, controlsToEnable);
 
             double theoreticalRequiredAttempts = Global.DesiredUniqueSets;
@@ -1537,7 +1562,7 @@ namespace RvE_RandoMice
 
         private void CreateBlockSetsBackGroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            EnableOrDisableAllControls(EnableOrDisable.Enable);
+            RevertEnabledStateOfControls(Global.ControlsAndEnabledStates);
             CreateBlockSetsTimer.Stop();
 
             if (e.Cancelled == true)
@@ -2316,9 +2341,10 @@ namespace RvE_RandoMice
         /// where the first line of the inputString needs to be pasted.</param>
         /// <param name="startCol">The start column number,
         /// where the first column of the inputString needs to be pasted.</param>
-        private void PasteDataToExcel(string outputString, Excel.Worksheet xlWorkSheet, int startRow, int startCol)
+        /// <returns>A tuple containing the last row and column to which data was pasted.</returns>
+        private (int EndRow, int EndCol) PasteDataToExcel(string outputString, Excel.Worksheet xlWorkSheet, int startRow, int startCol)
         {
-            int columnNumber;
+            int columnNumber = startCol;
             int rowNumber = startRow;
 
             //trim the input string on \r\n to find all rows to past
@@ -2344,7 +2370,10 @@ namespace RvE_RandoMice
                 
                 rowNumber++;
             }
+
+            return (rowNumber - 1, columnNumber - 1);
         }
+
         private void PasteButton_Click(object sender, EventArgs e)
         {
             //Paste data into datagridview
@@ -2415,7 +2444,7 @@ namespace RvE_RandoMice
             string fileName = (string)e.Argument;
 
             Control[] controlsToEnable = { AbortRunButton, MainProgressBar };
-            EnableOrDisableAllControls(EnableOrDisable.Disable);
+            Global.ControlsAndEnabledStates = EnableOrDisableAllControls(EnableOrDisable.Disable);
             EnableOrDisableControls(EnableOrDisable.Enable, controlsToEnable);
 
             //find number of block sets to export
@@ -2507,27 +2536,29 @@ namespace RvE_RandoMice
                 xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.Add(After: xlWorkBook.Sheets[xlWorkBook.Sheets.Count]);
                 xlWorkSheet.Name = "Set " + (i + 1).ToString();
 
-                int startRowNamesOfExperimentalUnits = 1;
-                int startColumnNamesOfExperimentalUnits = 1;
+                int defaultHorizontalOffset = 2;
+                ((int Row, int Column) TopLeftCell, (int Row, int Column) BottomRightCell) locationExperimentalUnitNames = ((1, 1), (1, 1));
+                ((int Row, int Column) TopLeftCell, (int Row, int Column) BottomRightCell) locationSubgroups = ((1, 1), (1, 1));
+                ((int Row, int Column) TopLeftCell, (int Row, int Column) BottomRightCell) locationDescriptives = ((1, 1), (1, 1));
+                ((int Row, int Column) TopLeftCell, (int Row, int Column) BottomRightCell) locationExperimentalUnitNamesAndVariables = ((1, 1), (1, 1));
 
                 //paste names of experimental units
-                PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerBlockAsString(i), xlWorkSheet, startRowNamesOfExperimentalUnits, startColumnNamesOfExperimentalUnits);
+                locationExperimentalUnitNames.BottomRightCell = PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerBlockAsString(i), xlWorkSheet, locationExperimentalUnitNames.TopLeftCell.Row, locationExperimentalUnitNames.TopLeftCell.Column);
 
-                int startRowDescriptives = 1;
-                int startColumnDescriptives = Global.FinishedExperiment.Runs.Last().BlockSets[i].BlocksOfExperimentalUnits.Count() + 2;
-
+                //paste subgroup details, if needed
                 if (Global.FinishedExperiment.CreateSubgroups)
                 {
-                    int startRowSubgroups = OccuranceOfSubstring(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerBlockAsString(i), "\r\n") + 3;
-                    int startColumnSubgroups = 1;
-
-                    PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerSubgroupAsString(i), xlWorkSheet, startRowSubgroups, startColumnSubgroups);
-
-                    if(startColumnDescriptives < 5)
-                        startColumnDescriptives++; //shift start column right by one
+                    locationSubgroups.TopLeftCell = (locationExperimentalUnitNames.BottomRightCell.Row + defaultHorizontalOffset, 1);
+                    locationSubgroups.BottomRightCell = PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerSubgroupAsString(i), xlWorkSheet, locationSubgroups.TopLeftCell.Row, locationSubgroups.TopLeftCell.Column);
                 }
 
-                PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetDescriptivesOfExperimentalUnitsAsString(i, Global.DescriptiveCheckboxes), xlWorkSheet, startRowDescriptives, startColumnDescriptives);
+                //paste descriptives of each block
+                locationDescriptives.TopLeftCell = (1, Math.Max(locationExperimentalUnitNames.BottomRightCell.Column, locationSubgroups.BottomRightCell.Column) + defaultHorizontalOffset);
+                locationDescriptives.BottomRightCell = PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetDescriptivesOfExperimentalUnitsAsString(i, Global.DescriptiveCheckboxes), xlWorkSheet, locationDescriptives.TopLeftCell.Row, locationDescriptives.TopLeftCell.Column);
+
+                //per block, paste the names and variables of each experimental unit
+                locationExperimentalUnitNamesAndVariables.TopLeftCell = (new[] { locationDescriptives.BottomRightCell.Row, locationSubgroups.BottomRightCell.Row, locationExperimentalUnitNames.BottomRightCell.Row }.Max() + defaultHorizontalOffset, 1);
+                locationExperimentalUnitNamesAndVariables.BottomRightCell = PasteDataToExcel(Global.FinishedExperiment.Runs.Last().GetNamesAndVariablesOfExperimentalUnitsPerBlockAsString(i), xlWorkSheet, locationExperimentalUnitNamesAndVariables.TopLeftCell.Row, locationExperimentalUnitNamesAndVariables.TopLeftCell.Column);
 
                 //report progress
                 timeDiff = DateTime.Now - datetimeLastProgressChangedUpdate;
@@ -2557,6 +2588,7 @@ namespace RvE_RandoMice
             catch (System.Runtime.InteropServices.COMException)
             {
                 MessageBox.Show("Cannot save the Excel file. Please close any currently open Excel files and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.Cancel = true;
             }
 
             //clean up
@@ -2598,7 +2630,7 @@ namespace RvE_RandoMice
 
             //lock controls
             Control[] controlsToEnable = { AbortRunButton, MainProgressBar };
-            EnableOrDisableAllControls(EnableOrDisable.Disable);
+            Global.ControlsAndEnabledStates = EnableOrDisableAllControls(EnableOrDisable.Disable);
             EnableOrDisableControls(EnableOrDisable.Enable, controlsToEnable);
 
             Run selectedRun = Global.FinishedExperiment.Runs.Last();
@@ -2612,55 +2644,42 @@ namespace RvE_RandoMice
             DateTime datetimeLastUpdate = DateTime.Now;
             TimeSpan timeDiff;
 
-            using (System.IO.StreamWriter file =
-                new System.IO.StreamWriter(fileName))
+            try
             {
-                //write some info about the run
-                file.WriteLine("RandoMice Version " + Global.CurrentAssemblyVersion);
-                file.WriteLine("Sets created: " + Global.FinishedExperiment.Runs.Last().UniqueSetsCreated.ToString());
-                file.WriteLine("Time elapsed (hh:mm:ss): " + Global.FinishedExperiment.Runs.Last().TotalTimeElapsedForCreatingBlockSets.ToString(Global.Settings.TimeSpanStringFormat));
-                file.WriteLine(); //write empty line
-                file.WriteLine("Input:");
-                
-                //write data corresponding to the original input
-                if (!replaceDecimalSeparator)
-                    file.WriteLine(Global.FinishedExperiment.InputData.Replace("\t", delimiter));
-                else
-                    file.WriteLine(Global.FinishedExperiment.InputData.Replace(delimiter, ".").Replace("\t", delimiter));
-                
-                file.WriteLine();//write empty line
-
-                //write block set numbers and ranks
-                if (!replaceDecimalSeparator)
-                    file.WriteLine(Global.FinishedExperiment.Runs.Last().GetSetsAndRanksAsString().Replace("\t", delimiter));
-                else
-                    file.WriteLine(Global.FinishedExperiment.Runs.Last().GetSetsAndRanksAsString().Replace(delimiter, ".").Replace("\t", delimiter));
-                
-                file.WriteLine();//write empty line
-
-                //for each block set, write the block compositions, optionally the subgroup compositions and the block descriptives
-                for (int i = 0; i < numberOfBlockSetsToExport; i++)
+                using (System.IO.StreamWriter file =
+                    new System.IO.StreamWriter(fileName))
                 {
-                    file.WriteLine("Set number " + (i + 1).ToString() + ":");
+                    //write some info about the run
+                    file.WriteLine("RandoMice Version " + Global.CurrentAssemblyVersion);
+                    file.WriteLine("Sets created: " + Global.FinishedExperiment.Runs.Last().UniqueSetsCreated.ToString());
+                    file.WriteLine("Time elapsed (hh:mm:ss): " + Global.FinishedExperiment.Runs.Last().TotalTimeElapsedForCreatingBlockSets.ToString(Global.Settings.TimeSpanStringFormat));
+                    file.WriteLine(); //write empty line
+                    file.WriteLine("Input:");
 
-                    //write block compositions
-                    string[] lines = System.Text.RegularExpressions.Regex.Split(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerBlockAsString(i).TrimEnd("\r\n".ToCharArray()), "\r\n"); ;
-                    
-                    foreach (string line in lines)
-                    {
-                        if (!replaceDecimalSeparator)
-                            file.WriteLine(line.Replace("\t", delimiter));
-                        else
-                            file.WriteLine(line.Replace(delimiter, ".").Replace("\t", delimiter));
-                    }
-                    
+                    //write data corresponding to the original input
+                    if (!replaceDecimalSeparator)
+                        file.WriteLine(Global.FinishedExperiment.InputData.Replace("\t", delimiter));
+                    else
+                        file.WriteLine(Global.FinishedExperiment.InputData.Replace(delimiter, ".").Replace("\t", delimiter));
+
                     file.WriteLine();//write empty line
 
-                    //optionally write subgroup compositions
-                    if (Global.FinishedExperiment.CreateSubgroups)
+                    //write block set numbers and ranks
+                    if (!replaceDecimalSeparator)
+                        file.WriteLine(Global.FinishedExperiment.Runs.Last().GetSetsAndRanksAsString().Replace("\t", delimiter));
+                    else
+                        file.WriteLine(Global.FinishedExperiment.Runs.Last().GetSetsAndRanksAsString().Replace(delimiter, ".").Replace("\t", delimiter));
+
+                    file.WriteLine();//write empty line
+
+                    //for each block set, write the block compositions, optionally the subgroup compositions, the block composition with variable values, and the block descriptives
+                    for (int i = 0; i < numberOfBlockSetsToExport; i++)
                     {
-                        lines = System.Text.RegularExpressions.Regex.Split(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerSubgroupAsString(i).TrimEnd("\r\n".ToCharArray()), "\r\n"); ;
-                        
+                        file.WriteLine("Set number " + (i + 1).ToString() + ":");
+
+                        //write block compositions
+                        string[] lines = System.Text.RegularExpressions.Regex.Split(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerBlockAsString(i).TrimEnd("\r\n".ToCharArray()), "\r\n"); ;
+
                         foreach (string line in lines)
                         {
                             if (!replaceDecimalSeparator)
@@ -2668,42 +2687,76 @@ namespace RvE_RandoMice
                             else
                                 file.WriteLine(line.Replace(delimiter, ".").Replace("\t", delimiter));
                         }
-                        
+
                         file.WriteLine();//write empty line
-                    }
 
-                    //finally write block descriptives
-                    lines = System.Text.RegularExpressions.Regex.Split(Global.FinishedExperiment.Runs.Last().GetDescriptivesOfExperimentalUnitsAsString(i, Global.DescriptiveCheckboxes).TrimEnd("\r\n".ToCharArray()), "\r\n"); ;
-                    
-                    foreach (string line in lines)
-                    {
-                        if (!replaceDecimalSeparator)
-                            file.WriteLine(line.Replace("\t", delimiter));
-                        else
-                            file.WriteLine(line.Replace(delimiter, ".").Replace("\t", delimiter));
-                    }
+                        //optionally write subgroup compositions
+                        if (Global.FinishedExperiment.CreateSubgroups)
+                        {
+                            lines = System.Text.RegularExpressions.Regex.Split(Global.FinishedExperiment.Runs.Last().GetExperimentalUnitNamesPerSubgroupAsString(i).TrimEnd("\r\n".ToCharArray()), "\r\n"); ;
 
-                    file.WriteLine();//write empty line
+                            foreach (string line in lines)
+                            {
+                                if (!replaceDecimalSeparator)
+                                    file.WriteLine(line.Replace("\t", delimiter));
+                                else
+                                    file.WriteLine(line.Replace(delimiter, ".").Replace("\t", delimiter));
+                            }
 
-                    //report progress 20 times per second
-                    timeDiff = DateTime.Now - datetimeLastUpdate;
-                    
-                    if ((int)timeDiff.TotalMilliseconds > Global.Settings.BackgroundWorkerReportProgressPeriod)
-                    {
-                        Global.SetsExported = i + 1;
-                        Global.FinishedExperiment.Runs.Last().ProgressPercentage = (double)i / (double)selectedRun.BlockSets.Count * 100;//to calculate time remaining
-                        progressPercentage = (int)Math.Floor(Global.FinishedExperiment.Runs.Last().ProgressPercentage);
-                        worker.ReportProgress(progressPercentage, new int[] { Global.SetsExported, numberOfBlockSetsToExport });
-                        datetimeLastUpdate = DateTime.Now;
-                    }
-                    
-                    //check if user pressed the abort button
-                    if (worker.CancellationPending == true)
-                    {
-                        e.Cancel = true; 
-                        return;
+                            file.WriteLine();//write empty line
+                        }
+
+                        //write block composition, with corresponding variable values
+                        lines = System.Text.RegularExpressions.Regex.Split(Global.FinishedExperiment.Runs.Last().GetNamesAndVariablesOfExperimentalUnitsPerBlockAsString(i).TrimEnd("\r\n".ToCharArray()), "\r\n"); ;
+
+                        foreach (string line in lines)
+                        {
+                            if (!replaceDecimalSeparator)
+                                file.WriteLine(line.Replace("\t", delimiter));
+                            else
+                                file.WriteLine(line.Replace(delimiter, ".").Replace("\t", delimiter));
+                        }
+
+                        file.WriteLine();//write empty line
+
+                        //finally write block descriptives
+                        lines = System.Text.RegularExpressions.Regex.Split(Global.FinishedExperiment.Runs.Last().GetDescriptivesOfExperimentalUnitsAsString(i, Global.DescriptiveCheckboxes).TrimEnd("\r\n".ToCharArray()), "\r\n"); ;
+
+                        foreach (string line in lines)
+                        {
+                            if (!replaceDecimalSeparator)
+                                file.WriteLine(line.Replace("\t", delimiter));
+                            else
+                                file.WriteLine(line.Replace(delimiter, ".").Replace("\t", delimiter));
+                        }
+
+                        file.WriteLine();//write empty line
+
+                        //report progress 20 times per second
+                        timeDiff = DateTime.Now - datetimeLastUpdate;
+
+                        if ((int)timeDiff.TotalMilliseconds > Global.Settings.BackgroundWorkerReportProgressPeriod)
+                        {
+                            Global.SetsExported = i + 1;
+                            Global.FinishedExperiment.Runs.Last().ProgressPercentage = (double)i / (double)selectedRun.BlockSets.Count * 100;//to calculate time remaining
+                            progressPercentage = (int)Math.Floor(Global.FinishedExperiment.Runs.Last().ProgressPercentage);
+                            worker.ReportProgress(progressPercentage, new int[] { Global.SetsExported, numberOfBlockSetsToExport });
+                            datetimeLastUpdate = DateTime.Now;
+                        }
+
+                        //check if user pressed the abort button
+                        if (worker.CancellationPending == true)
+                        {
+                            e.Cancel = true;
+                            return;
+                        }
                     }
                 }
+            }
+            catch (IOException)
+            {
+                MessageBox.Show("Cannot access the file. Please close any currently open files and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.Cancel = true;
             }
 
             if (!e.Cancel)
@@ -2713,14 +2766,17 @@ namespace RvE_RandoMice
 
             e.Result = fileName; //for use in RunWorkerCompleted
 
-            //Open explorer and select the newly created file
-            if (File.Exists(fileName))
+            if (!e.Cancel)
             {
-                string argument = "/select, \"" + fileName + "\"";
-                System.Diagnostics.Process.Start("explorer.exe", argument);
+                //Open explorer and select the newly created file
+                if (File.Exists(fileName))
+                {
+                    string argument = "/select, \"" + fileName + "\"";
+                    System.Diagnostics.Process.Start("explorer.exe", argument);
+                }
+                else
+                    throw new InvalidOperationException("File cannot be found."); //error will be handled by RunWorkerCompleted
             }
-            else
-                throw new InvalidOperationException("File cannot be found."); //error will be handled by RunWorkerCompleted
         }
 
         private void ExportToFileBackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -2759,7 +2815,7 @@ namespace RvE_RandoMice
 
                     MessageBox.Show("Data sucessfully exported to " + e.Result.ToString(), "Export successful", MessageBoxButtons.OK, MessageBoxIcon.None);
                 }
-                catch (System.ArgumentOutOfRangeException)
+                catch
                 {
                     ProgressLabel.Text += " - Finished!";
                 }
@@ -2767,7 +2823,7 @@ namespace RvE_RandoMice
 
             CreateBlockSetsTimer.Stop();
             MainProgressBar.Value = 0;
-            EnableOrDisableAllControls(EnableOrDisable.Enable);
+            RevertEnabledStateOfControls(Global.ControlsAndEnabledStates);
         }
         #endregion
 
