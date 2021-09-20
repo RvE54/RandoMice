@@ -375,9 +375,7 @@ namespace RvE_RandoMice
         private void RevertEnabledStateOfControls(List<(Control Control, bool OriginalEnabledState)> controlsAndOriginalEnabledStates)
         {
             foreach (var controlAndOriginalEnabledState in controlsAndOriginalEnabledStates)
-            {
                 controlAndOriginalEnabledState.Control.Invoke(new Action(() => { controlAndOriginalEnabledState.Control.Enabled = controlAndOriginalEnabledState.OriginalEnabledState; }));
-            }
         }
 
         /// <summary>
@@ -1563,6 +1561,7 @@ namespace RvE_RandoMice
         private void CreateBlockSetsBackGroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             RevertEnabledStateOfControls(Global.ControlsAndEnabledStates);
+            EnableOrDisableControls(EnableOrDisable.Enable, controls: GetChildControls(BestBlockSetsGroupBox, includeContainerControls: true).ToArray().Concat(GetChildControls(BlockSetDetailsGroupBox, includeContainerControls: true)).ToArray()); // MeanCheckBox, SDCheckBox, MinCheckBox, MedianCheckBox, MaxCheckBox,  })
             CreateBlockSetsTimer.Stop();
 
             if (e.Cancelled == true)
