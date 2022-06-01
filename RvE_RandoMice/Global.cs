@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2022 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@ namespace RvE_RandoMice
     public enum LoadState { Success, Failed, Cancelled };
     public enum ValidOrInvalid { Valid, Invalid };
     public enum EnableOrDisable { Disable = 0, Enable = 1 };
+    public enum AllowPasting { True, IntoExistingCellsOnly, False };
 
     static class Global
     {

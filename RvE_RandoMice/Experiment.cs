@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2022 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ namespace RvE_RandoMice
         /// Creates a new Run and sets the OnRequest handlers.
         /// </summary>
         /// <returns>A new instance of Run with OnRequest handlers set.</returns>
-        public Run CreateNewRun(bool checkForBlockSetUnicity)
+        public Run CreateNewRun(bool checkForBlockSetUnicity = true)
         {
             Run run = new Run(checkForBlockSetUnicity);
 

@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2022 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -236,6 +236,17 @@ namespace RvE_RandoMice
         }
 
         /// <summary>
+        /// Sorts block sets by rank and sets BlockSet.SortNumber based on the ordered index.
+        /// </summary>
+        public void NumberBlockSetsByRank()
+        {
+            SortBlockSetsByRank();
+            
+            for(int i = 0; i < BlockSets.Count; i++)
+                BlockSets[i].SortNumber = i + 1;
+        }
+
+        /// <summary>
         /// Calculates the time remaining based on the progress percentage
         /// and a given Stopwatch.
         /// </summary>
@@ -285,6 +296,10 @@ namespace RvE_RandoMice
         /// </remarks>
         public string GetSetsAndRanksAsString(bool copyToClipboard = false)
         {
+            //check if blockets have been numbered before
+            if (BlockSets[0].SortNumber == null)
+                NumberBlockSetsByRank();
+
             //this functions returns a string to visualise set ranks and optionally the number of markers to add
             string newline = "\r\n";
             string delimiter = "\t";
@@ -306,7 +321,7 @@ namespace RvE_RandoMice
                 for (int i = 0; i < BlockSets.Count; i++)
                 {
                     output.Append(newline);
-                    output.Append((i + 1).ToString() + delimiter);
+                    output.Append(BlockSets[i].SortNumber.ToString() + delimiter);
                     output.Append(BlockSets[i].NonDistributableExperimentalUnits.Count.ToString() + delimiter);
                     output.Append(BlockSets[i].Rank.ToString());
                 }
@@ -316,7 +331,7 @@ namespace RvE_RandoMice
                 for (int i = 0; i < BlockSets.Count; i++)
                 {
                     output.Append(newline);
-                    output.Append((i + 1).ToString() + delimiter);
+                    output.Append(BlockSets[i].SortNumber.ToString() + delimiter);
                     output.Append(BlockSets[i].Rank.ToString());
                 }
             }

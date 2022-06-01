@@ -104,6 +104,7 @@
             this.MainToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.PasteButton = new System.Windows.Forms.Button();
             this.ReDefineGroupNamesLabel = new System.Windows.Forms.Label();
+            this.FilterResultsPictureBox = new System.Windows.Forms.PictureBox();
             this.RandomlyAssignGroupsToBlocks = new System.Windows.Forms.Button();
             this.InputGroupBox = new System.Windows.Forms.GroupBox();
             this.InputDataGridView = new RvE_RandoMice.MyDataGridView();
@@ -130,6 +131,7 @@
             this.SubgroupsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PreferredSubgroupSizeNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MarkersHelpPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.FilterResultsPictureBox)).BeginInit();
             this.InputGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.InputDataGridView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ExperimentalUnitNamesHelpPictureBox)).BeginInit();
@@ -964,6 +966,20 @@
             this.MainToolTip.SetToolTip(this.ReDefineGroupNamesLabel, "Re-define group names");
             this.ReDefineGroupNamesLabel.Click += new System.EventHandler(this.ReDefineGroupNamesLabel_Click);
             // 
+            // FilterResultsPictureBox
+            // 
+            this.FilterResultsPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.FilterResultsPictureBox.BackColor = System.Drawing.Color.Transparent;
+            this.FilterResultsPictureBox.Image = global::RvE_RandoMice.Properties.Resources.Filter;
+            this.FilterResultsPictureBox.Location = new System.Drawing.Point(273, 7);
+            this.FilterResultsPictureBox.Name = "FilterResultsPictureBox";
+            this.FilterResultsPictureBox.Size = new System.Drawing.Size(16, 16);
+            this.FilterResultsPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.FilterResultsPictureBox.TabIndex = 2;
+            this.FilterResultsPictureBox.TabStop = false;
+            this.MainToolTip.SetToolTip(this.FilterResultsPictureBox, "Filter...");
+            this.FilterResultsPictureBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilterResultsPictureBox_MouseClick);
+            // 
             // RandomlyAssignGroupsToBlocks
             // 
             this.RandomlyAssignGroupsToBlocks.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -992,9 +1008,11 @@
             // 
             // InputDataGridView
             // 
+            this.InputDataGridView.AllowFiltering = false;
             this.InputDataGridView.AllowSorting = true;
             this.InputDataGridView.AllowUserToAddRows = false;
             this.InputDataGridView.AllowUserToDeleteRows = false;
+            this.InputDataGridView.AllowViewDetails = true;
             this.InputDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -1005,7 +1023,7 @@
             this.InputDataGridView.Location = new System.Drawing.Point(6, 42);
             this.InputDataGridView.MenuItemsEnabled = true;
             this.InputDataGridView.Name = "InputDataGridView";
-            this.InputDataGridView.PastingDataFromClipboardIsAllowed = true;
+            this.InputDataGridView.PastingDataFromClipboardIsAllowed = RvE_RandoMice.AllowPasting.True;
             this.InputDataGridView.ReadOnly = true;
             this.InputDataGridView.RowHeadersVisible = false;
             this.InputDataGridView.Size = new System.Drawing.Size(478, 84);
@@ -1044,6 +1062,7 @@
             // 
             // BestBlockSetsGroupBox
             // 
+            this.BestBlockSetsGroupBox.Controls.Add(this.FilterResultsPictureBox);
             this.BestBlockSetsGroupBox.Controls.Add(this.BlockSetsResultsDataGridView);
             this.BestBlockSetsGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.BestBlockSetsGroupBox.Enabled = false;
@@ -1057,23 +1076,30 @@
             // 
             // BlockSetsResultsDataGridView
             // 
+            this.BlockSetsResultsDataGridView.AllowFiltering = true;
             this.BlockSetsResultsDataGridView.AllowSorting = true;
             this.BlockSetsResultsDataGridView.AllowUserToAddRows = false;
             this.BlockSetsResultsDataGridView.AllowUserToDeleteRows = false;
+            this.BlockSetsResultsDataGridView.AllowViewDetails = true;
+            this.BlockSetsResultsDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.BlockSetsResultsDataGridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
             this.BlockSetsResultsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.BlockSetsResultsDataGridView.CurrentlySelectedValue = null;
-            this.BlockSetsResultsDataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.BlockSetsResultsDataGridView.IsInputDataGridViewForExperiment = false;
-            this.BlockSetsResultsDataGridView.Location = new System.Drawing.Point(3, 16);
+            this.BlockSetsResultsDataGridView.Location = new System.Drawing.Point(3, 23);
             this.BlockSetsResultsDataGridView.MenuItemsEnabled = true;
             this.BlockSetsResultsDataGridView.Name = "BlockSetsResultsDataGridView";
-            this.BlockSetsResultsDataGridView.PastingDataFromClipboardIsAllowed = false;
+            this.BlockSetsResultsDataGridView.PastingDataFromClipboardIsAllowed = RvE_RandoMice.AllowPasting.False;
             this.BlockSetsResultsDataGridView.ReadOnly = true;
             this.BlockSetsResultsDataGridView.RowHeadersVisible = false;
-            this.BlockSetsResultsDataGridView.Size = new System.Drawing.Size(286, 144);
+            this.BlockSetsResultsDataGridView.Size = new System.Drawing.Size(286, 140);
             this.BlockSetsResultsDataGridView.TabIndex = 0;
             this.BlockSetsResultsDataGridView.DataPasted += new System.EventHandler<RvE_RandoMice.DataPastedEventArgs>(this.BlockSetsResultsDataGridView_DataPasted);
+            this.BlockSetsResultsDataGridView.FilterByMarkersToChange += new System.EventHandler<RvE_RandoMice.EventArgsWithValue>(this.BlockSetsResultsDataGridView_FilterByMarkersToChange);
+            this.BlockSetsResultsDataGridView.RemoveAllFilters += new System.EventHandler<System.EventArgs>(this.BlockSetsResultsDataGridView_RemoveAllFilters);
+            this.BlockSetsResultsDataGridView.FilterByCategory += new System.EventHandler<System.EventArgs>(this.BlockSetsResultsDataGridView_FilterByCategory);
             this.BlockSetsResultsDataGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.BlockSetsResultsDataGridView_CellClick);
             this.BlockSetsResultsDataGridView.SelectionChanged += new System.EventHandler(this.BlockSetsResultsDataGridView_SelectionChanged);
             // 
@@ -1104,9 +1130,11 @@
             // 
             // BlocksDescriptivesDataGridView
             // 
+            this.BlocksDescriptivesDataGridView.AllowFiltering = false;
             this.BlocksDescriptivesDataGridView.AllowSorting = false;
             this.BlocksDescriptivesDataGridView.AllowUserToAddRows = false;
             this.BlocksDescriptivesDataGridView.AllowUserToDeleteRows = false;
+            this.BlocksDescriptivesDataGridView.AllowViewDetails = true;
             this.BlocksDescriptivesDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -1117,7 +1145,7 @@
             this.BlocksDescriptivesDataGridView.Location = new System.Drawing.Point(558, 36);
             this.BlocksDescriptivesDataGridView.MenuItemsEnabled = true;
             this.BlocksDescriptivesDataGridView.Name = "BlocksDescriptivesDataGridView";
-            this.BlocksDescriptivesDataGridView.PastingDataFromClipboardIsAllowed = false;
+            this.BlocksDescriptivesDataGridView.PastingDataFromClipboardIsAllowed = RvE_RandoMice.AllowPasting.False;
             this.BlocksDescriptivesDataGridView.ReadOnly = true;
             this.BlocksDescriptivesDataGridView.RowHeadersVisible = false;
             this.BlocksDescriptivesDataGridView.Size = new System.Drawing.Size(216, 155);
@@ -1125,9 +1153,11 @@
             // 
             // SubgroupCompositionsDataGridView
             // 
+            this.SubgroupCompositionsDataGridView.AllowFiltering = false;
             this.SubgroupCompositionsDataGridView.AllowSorting = false;
             this.SubgroupCompositionsDataGridView.AllowUserToAddRows = false;
             this.SubgroupCompositionsDataGridView.AllowUserToDeleteRows = false;
+            this.SubgroupCompositionsDataGridView.AllowViewDetails = true;
             this.SubgroupCompositionsDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.SubgroupCompositionsDataGridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
@@ -1137,7 +1167,7 @@
             this.SubgroupCompositionsDataGridView.Location = new System.Drawing.Point(249, 35);
             this.SubgroupCompositionsDataGridView.MenuItemsEnabled = true;
             this.SubgroupCompositionsDataGridView.Name = "SubgroupCompositionsDataGridView";
-            this.SubgroupCompositionsDataGridView.PastingDataFromClipboardIsAllowed = false;
+            this.SubgroupCompositionsDataGridView.PastingDataFromClipboardIsAllowed = RvE_RandoMice.AllowPasting.False;
             this.SubgroupCompositionsDataGridView.ReadOnly = true;
             this.SubgroupCompositionsDataGridView.RowHeadersVisible = false;
             this.SubgroupCompositionsDataGridView.Size = new System.Drawing.Size(292, 156);
@@ -1145,9 +1175,11 @@
             // 
             // NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView
             // 
+            this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.AllowFiltering = false;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.AllowSorting = true;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.AllowUserToAddRows = false;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.AllowUserToDeleteRows = false;
+            this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.AllowViewDetails = true;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
@@ -1157,7 +1189,7 @@
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.Location = new System.Drawing.Point(6, 35);
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.MenuItemsEnabled = true;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.Name = "NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView";
-            this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.PastingDataFromClipboardIsAllowed = false;
+            this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.PastingDataFromClipboardIsAllowed = RvE_RandoMice.AllowPasting.False;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.ReadOnly = true;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.RowHeadersVisible = false;
             this.NamesOfExperimentalUnitsInBlocksOfBlockSetDataGridView.Size = new System.Drawing.Size(226, 156);
@@ -1250,6 +1282,7 @@
             this.SubgroupsTabPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PreferredSubgroupSizeNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.MarkersHelpPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.FilterResultsPictureBox)).EndInit();
             this.InputGroupBox.ResumeLayout(false);
             this.InputGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.InputDataGridView)).EndInit();
@@ -1362,5 +1395,6 @@
         private System.Windows.Forms.ToolStripMenuItem CheckForUpdatesToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem ViewHelpToolStripMenuItem;
+        private System.Windows.Forms.PictureBox FilterResultsPictureBox;
     }
 }

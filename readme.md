@@ -57,7 +57,7 @@ When all abovementioned details are provided, the user may directly [start block
 In the second tab page named "Variables" in the bottom-left section of the software, the user may optionally define weights for each variable and covariate, which will reflect their relative importance when scoring a set of blocks. Weights are linear, with larger values representing greater "importance". In this tab page the user may also specify the number of digits of each variable: this number will not affect how RandoMice performs its calculations, but will determine how final results are rounded and shown.
 
 ### Defining subgroup sizes
-In the third tab page named "Subgroups" in the bottom-left section of the software, the user may optionally instruct the software to divide the experimental units in each block into subgroups. After ticking the corresponding checkbox, the user must define which input data column contains (physical) markers. If "None" is selected, the software assumes that subgroups must be created randomly. Else, the software will divide experimental units of each block into subgroups based on the markers as defined in the data column in such way that there is as little overlap between markers within subgroups as possible. The user must also define the subgroup sizes; a default subgroup size may be set in the current tab page and subgroup sizes may be further specified on the appeared tab page named "Subgroup sizes".
+In the third tab page named "Subgroups" in the bottom-left section of the software, the user may optionally instruct the software to divide the experimental units in each block into subgroups. After ticking the corresponding checkbox, the user must define which input data column contains (physical) markers. If "None" is selected, the software assumes that subgroups must be created randomly. Else, the software will divide experimental units of each block into subgroups based on the markers, as defined in the input data column, in such way that there is as little overlap between markers within subgroups as possible. The user must also define the subgroup sizes; a default subgroup size may be set in the current tab page and subgroup sizes may be further specified on the appeared tab page named "Subgroup sizes".
 
 ### Starting a run
 Block set creation can be started by pressing the "Run" button. The top-right progress section will display the time elapsed, the estimated time remaining and the number of created block sets. The run can always be interrupted by pressing the button "Abort". Alternatively, one may press the button "Show results" which will stop the run and display the current results.
@@ -67,6 +67,9 @@ Once finished, a list of best-balanced block sets and their ranks are displayed 
 
 An extra section will become visible at the bottom, in which details of the selected block set can be viewed: the leftmost data grid displays the block composition; the middle data grid displays the subgroup composition; the rightmost data grid displays variable descriptives for each block.
 
+Optionally, at this point the block sets can be filtered by the number of overlapping (physical) markers. Alternatively, block sets can be filtered by a newly provided category (*e.g.* a common starting condition such as cage number), which displays block sets that have at least one experimental unit of each category in each block. This may be helpful, for example, for users who aim divide pre-grouped experimental units.\
+Please note that increasing the "Number of sets to remember" may be required to find sufficient block sets that match the filter criterium.
+
 ### Randomly assigning blocks to groups
 Finally, once the user has chosen his/her favorite block set, blocks may be randomly allocated to groups/interventions. This can be done by pressing the corresponding button; if group names have not yet been defined, the user will be prompted to do so.
 
@@ -75,7 +78,7 @@ Details of the resulting block sets may be exported into various file formats vi
 Alternatively, results may be saved to disk via *>File>Save as...* which will create a .rndm file that can be re-opened in the software later.
 
 ## Authors
-Randomice was originally written by:
+RandoMice was originally written by:
 * R. van Eenige - [RvE54](https://github.com/RvE54)
 
 The following people have contributed code/logics to RandoMice:

@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2022 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -169,6 +169,7 @@ namespace RvE_RandoMice
         public int DownloadSubgroupSizesTemplateButtonWidth { get; private set; } = 120;
         public int ImportSubgroupSizesFromTemplateButtonWidth { get; private set; } = 120;
         public (int Height, int Width) MainFormWithResultsSize { get; private set; } = (705, 840);
+        public int RequestCategoryDataGridViewColumnMinimumWidth = 150;
 
 
         //Misc default values that are set via the designer of MainForm.cs

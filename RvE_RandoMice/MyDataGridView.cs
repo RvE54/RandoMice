@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2022 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ namespace RvE_RandoMice
 
         public bool MenuItemsEnabled { get; set; } = true;
 
-        public bool PastingDataFromClipboardIsAllowed { get; set; } = false;
+        public AllowPasting PastingDataFromClipboardIsAllowed { get; set; } = AllowPasting.False;
 
         public bool IsInputDataGridViewForExperiment { get; set; } = false;
 
@@ -51,7 +51,17 @@ namespace RvE_RandoMice
 
         public bool AllowSorting { get; set; } = true;
 
+        public bool AllowFiltering { get; set; } = false;
+
+        public bool AllowViewDetails { get; set; } = true;
+
         public event EventHandler<DataPastedEventArgs> DataPasted;
+
+        public event EventHandler<EventArgsWithValue> FilterByMarkersToChange;
+
+        public event EventHandler<EventArgs> RemoveAllFilters;
+
+        public event EventHandler<EventArgs> FilterByCategory;
 
         public int? CurrentlySelectedValue { get; set; } = null;
 
@@ -106,19 +116,49 @@ namespace RvE_RandoMice
                 contextMenu.Items.Add(copyMenuItem);
                 contextMenu.Items.Add(copyCellMenuItem);
 
-                if (PastingDataFromClipboardIsAllowed)
+                if (PastingDataFromClipboardIsAllowed != AllowPasting.False)
                 {
                     var pasteMenuItem = new ToolStripMenuItem("Paste", Properties.Resources.Paste, MenuItemPasteClipboardContent);
                     contextMenu.Items.Add(pasteMenuItem);
                 }
 
-                var viewDetailsMenuItem = new ToolStripMenuItem("View details", Properties.Resources.MagnifyingGlass, MenuItemViewDetails);
-                contextMenu.Items.Add(viewDetailsMenuItem);
+                if (AllowViewDetails)
+                {
+                    var viewDetailsMenuItem = new ToolStripMenuItem("View details", Properties.Resources.MagnifyingGlass, MenuItemViewDetails);
+                    contextMenu.Items.Add(viewDetailsMenuItem);
+                }
+
+                if (AllowFiltering) //to filter blocksets based on condition
+                {
+                    var filterMenuItem = new ToolStripMenuItem("Filter results...", null, MenuItemFilter);
+                    var filterByMarkersToChange = new ToolStripMenuItem("by markers to change", null, MenuItemFilterByMarkersToChange);
+                    var filterByCategory = new ToolStripMenuItem("by category", null, MenuItemFilterByCategory);
+                    var removeAllFilters = new ToolStripMenuItem("remove all filters", null, MenuItemRemoveAllFilters);
+                    filterMenuItem.DropDownItems.AddRange(new[] { filterByMarkersToChange, filterByCategory, removeAllFilters });
+                    contextMenu.Items.Add(filterMenuItem);
+                }
 
                 contextMenu.Show(this, new Point(e.X, e.Y));
             }
 
             base.OnMouseClick(e); //to ensure external event handlers are called
+        }
+
+        public void ShowFilterMenuItems(MouseEventArgs e, (int X, int Y) offset)
+        {
+            if (AllowFiltering) //to filter blocksets based on condition
+            {
+                ContextMenuStrip contextMenu = new ContextMenuStrip();
+
+                var filterMenuItem = new ToolStripMenuItem("Filter results...", null, MenuItemFilter);
+                var filterByMarkersToChange = new ToolStripMenuItem("by markers to change", null, MenuItemFilterByMarkersToChange);
+                var filterByCategory = new ToolStripMenuItem("by category", null, MenuItemFilterByCategory);
+                var removeAllFilters = new ToolStripMenuItem("remove all filters", null, MenuItemRemoveAllFilters);
+                filterMenuItem.DropDownItems.AddRange(new[] { filterByMarkersToChange, filterByCategory, removeAllFilters });
+                contextMenu.Items.Add(filterMenuItem);
+
+                contextMenu.Show(this, new Point(e.X + offset.X, e.Y + offset.Y));
+            }
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -131,8 +171,14 @@ namespace RvE_RandoMice
                     CopySelectedCellsToClipboard();
             }
             
-            if (PastingDataFromClipboardIsAllowed && e.KeyCode == Keys.V && e.Control)
-                PasteString(GetPastableTextAsStringFromClipboard());
+            if (e.KeyCode == Keys.V && e.Control)
+            {
+                if (PastingDataFromClipboardIsAllowed == AllowPasting.True)
+                    PasteString(GetPastableTextAsStringFromClipboard());
+                else if (PastingDataFromClipboardIsAllowed == AllowPasting.IntoExistingCellsOnly)
+                    PasteStringIntoExistingWritableCells(GetPastableTextAsStringFromClipboard());
+            }
+                
 
             base.OnKeyDown(e);
         }
@@ -201,7 +247,7 @@ namespace RvE_RandoMice
         /// Pastes a string that is seperated by tabs and newLines, into the DataGridView.
         /// </summary>
         /// <param name="stringToPaste">A string that is separated by tabs and newlines, containing
-        /// the data that should be pasted to the DataGridView.</param>
+        /// the data that should be pasted to the DataGridView with headers in the first row.</param>
         /// <param name="warnUserForInvalidDataPoints">A bool to indicate whether or not the user should
         /// be warned if the pasted string contains invalid data points. Default is false.</param>
         /// <param name="askUserIfDatesShouldBeConvertedToValues">A bool to indicate whether or not the user should
@@ -252,8 +298,78 @@ namespace RvE_RandoMice
             //Raise OnDataPasted event
             OnDataPasted(new DataPastedEventArgs(warnUserForInvalidDataPoints, askUserIfDatesShouldBeConvertedToValues));
 
-            //Save pasted string in memory to allow 
+            //Save pasted string
             PastedString = stringToPaste;
+
+            Cursor.Current = Cursors.Arrow;
+        }
+
+        /// <summary>
+        /// Pastes a string that is seperated by tabs and newLines, including headers in the first row,
+        /// into existing writable (i.e. not readonly) cells into the DataGridView.
+        /// </summary>
+        /// <param name="stringToPaste">A string that is separated by tabs and newlines, containing
+        /// the data that should be pasted to existing cells in the DataGridView.</param>
+        public void PasteStringIntoExistingWritableCells(string stringToPaste)
+        {
+            if (string.IsNullOrEmpty(stringToPaste))
+            {
+                PastedString = null;
+                return;
+            }
+
+            Cursor.Current = Cursors.WaitCursor; //give user feedback by changing the cursor
+
+            //get all input rows from the input string
+            string[] inputRows = System.Text.RegularExpressions.Regex.Split(stringToPaste.TrimEnd("\r\n".ToCharArray()), "\r\n");
+
+            (int Row, int Cell) lastReachedCell = (0, 0);
+
+            //define the starting cell for pasting the data (i.e. the top left user-selected cell)
+            (int Row, int Column) pasteStartCell = (0, 0);
+
+            try
+            {
+                pasteStartCell = (SelectedCells.Cast<DataGridViewCell>().OrderBy(cell => cell.RowIndex).ToArray()[0].RowIndex, SelectedCells.Cast<DataGridViewCell>().OrderBy(cell => cell.ColumnIndex).ToArray()[0].ColumnIndex);
+            }
+            catch
+            {
+                //do nothing, pasteStartCell will keep its default value
+            }
+
+            //deselect all cells
+            ClearSelection();
+
+            //assume the pasted data contains header if the row of the selected cell is 0
+            //unless the number of columns to be pasted equals the number of experimental units
+            int pasteHeaders = pasteStartCell.Row == 0 && inputRows.Count() != Rows.Count ? 1 : 0;
+
+            //paste data
+            for (int i = pasteStartCell.Row; i < Rows.Count && i - pasteStartCell.Row + pasteHeaders < inputRows.Count(); i++) //we assume that the first row contains column headers
+            {
+                string[] inputRowCells = inputRows[i - pasteStartCell.Row + pasteHeaders].Split(new char[] { '\t' }); //split input row by tabs
+
+                for (int j = pasteStartCell.Column; j < Columns.Count; j++)
+                {
+                    if (j < inputRowCells.Length  + pasteStartCell.Column)
+                    {
+                        if(!Columns[j].ReadOnly)
+                            Rows[i].Cells[j].Value = inputRowCells[j - pasteStartCell.Column];
+
+                        lastReachedCell = (i, j);
+                    }
+                }
+            }
+
+            //select all cells that span the pasted data
+            for (int i = pasteStartCell.Row; i <= lastReachedCell.Row; i++)
+            {
+                for (int j = pasteStartCell.Column; j <= lastReachedCell.Cell; j++)
+                    Rows[i].Cells[j].Selected = true;
+            }
+
+            //auto resize columns
+            AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
 
             Cursor.Current = Cursors.Arrow;
         }
@@ -263,7 +379,10 @@ namespace RvE_RandoMice
         /// </summary>
         public void PasteClipboard()
         {
-            PasteString(GetPastableTextAsStringFromClipboard(), warnUserForInvalidDataPoints: true, askUserIfDatesShouldBeConvertedToValues: true);
+            if (PastingDataFromClipboardIsAllowed == AllowPasting.True)
+                PasteString(GetPastableTextAsStringFromClipboard(), warnUserForInvalidDataPoints: true, askUserIfDatesShouldBeConvertedToValues: true);
+            else if (PastingDataFromClipboardIsAllowed == AllowPasting.IntoExistingCellsOnly)
+                PasteStringIntoExistingWritableCells(GetPastableTextAsStringFromClipboard());
         }
 
         private string GetPastableTextAsStringFromClipboard()
@@ -297,9 +416,64 @@ namespace RvE_RandoMice
                 displayDataGridViewDetails.ShowDialog();
         }
 
+        private void MenuItemFilter(object sender, EventArgs e)
+        {
+            //do nothing
+        }
+
+        private void MenuItemFilterByMarkersToChange(object sender, EventArgs e)
+        {
+            if (Global.FinishedExperiment != null && Global.FinishedExperiment.ExperimentalUnitsHaveMarkers)
+            {
+                using (RequestInteger requestMaximumMarkersToChange = new RequestInteger(title: "Filter results", mainText: "The number of markers to change must be smaller or equal to:"))
+                {
+                    var result = requestMaximumMarkersToChange.ShowDialog();
+
+                    if (result == DialogResult.OK)
+                        OnFilterByMarkersToChange(new EventArgsWithValue(requestMaximumMarkersToChange.Result));
+                }
+            }
+            else if (!Global.FinishedExperiment.ExperimentalUnitsHaveMarkers)
+                MessageBox.Show("The current experimental units do not have markers. Please provide markers, and re-run the program.", "No markers available", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void MenuItemFilterByCategory(object sender, EventArgs e)
+        {
+            using (RequestCategoryOfExperimentalUnitsForm requestCategoryOfExperimentalUnitsForm = new RequestCategoryOfExperimentalUnitsForm())
+            {
+                var result = requestCategoryOfExperimentalUnitsForm.ShowDialog();
+
+                if (result == DialogResult.OK)
+                    OnFilterByCategory(e);
+            }
+        }
+
+        private void MenuItemRemoveAllFilters(object sender, EventArgs e)
+        {
+            OnRemoveAllFilters(e);
+        }
+
         protected virtual void OnDataPasted(DataPastedEventArgs e)
         {
             EventHandler<DataPastedEventArgs> handler = DataPasted;
+            handler?.Invoke(this, e);
+        }
+
+        protected virtual void OnFilterByMarkersToChange(EventArgsWithValue e)
+        {
+            EventHandler<EventArgsWithValue> handler = FilterByMarkersToChange;
+            handler?.Invoke(this, e);
+        }
+
+        protected virtual void OnFilterByCategory(EventArgs e)
+        {
+            EventHandler<EventArgs> handler = FilterByCategory;
+            handler?.Invoke(this, e);
+        }
+
+        protected virtual void OnRemoveAllFilters(EventArgs e)
+        {
+            EventHandler<EventArgs> handler = RemoveAllFilters;
             handler?.Invoke(this, e);
         }
 

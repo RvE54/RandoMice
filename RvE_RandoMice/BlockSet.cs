@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2022 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -229,6 +229,29 @@ namespace RvE_RandoMice
             }
         }
 
+        /// <summary>
+        /// A bool which is true if all blocks contain at least one ExperimentalUnit of all types of provided Categories.
+        /// </summary>
+        public bool EachBlockContainsAllExperimentalUnitCategories
+        {
+            get 
+            {
+                bool eachBlockContainsAllExperimentalUnitCategories = true;
+                List<string> allCategories = BlocksOfExperimentalUnits
+                                             .SelectMany(blockOfExperimentalUnits => blockOfExperimentalUnits.ExperimentalUnits).ToList()
+                                             .Select(experimentalUnit => experimentalUnit.Category).ToList().Distinct().ToList();
+                
+                foreach(BlockOfExperimentalUnits blockOfExperimentalUnits in BlocksOfExperimentalUnits)
+                {
+                    if (blockOfExperimentalUnits.ExperimentalUnits
+                        .Select(experimentalUnit => experimentalUnit.Category).ToList().Distinct().Count() != allCategories.Count)
+                        eachBlockContainsAllExperimentalUnitCategories = false;
+                }
+
+                return eachBlockContainsAllExperimentalUnitCategories;
+            }
+        }
+
         public double Rank { get; set; } = new double();
 
         public List<double> SDs { get; set; } = new List<double>();
@@ -247,5 +270,7 @@ namespace RvE_RandoMice
         /// but the order of the current list of Groups is random as to randomly assign the BlocksOfExperimentalUnits to groups.
         /// </summary>
         public List<Group> Groups { get; private set; } = new List<Group>();
+
+        public int? SortNumber = null;
     }
 }

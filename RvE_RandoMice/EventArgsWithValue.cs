@@ -15,7 +15,6 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-//
 
 using System;
 using System.Collections.Generic;
@@ -25,20 +24,13 @@ using System.Threading.Tasks;
 
 namespace RvE_RandoMice
 {
-    [Serializable]
-    public class Marker
+    public class EventArgsWithValue
     {
-        public Marker(string name)
+        public int IntegerValue { get; private set; }
+
+        public EventArgsWithValue(int integerValue)
         {
-            Name = name;
+            IntegerValue = integerValue;
         }
-
-        public string Name { get; set; } = string.Empty;
-
-        /// <summary>
-        /// The number of ExperimentalUnits that contain the current marker
-        /// and that are not yet divided into subgroups during BlockOfExperimentalUnits.DivideExperimentalUnitsIntoSubgroups().
-        /// </summary>
-        public int ExperimentalUnitsContainingCurrentMarkerNotYetDividedIntoSubgroups { get; set; } = 1;
     }
 }

@@ -1,5 +1,5 @@
 ﻿//    RandoMice
-//    Copyright(C) 2019-2021 R. van Eenige, Leiden University Medical Center
+//    Copyright(C) 2019-2022 R. van Eenige, Leiden University Medical Center
 //    and individual contributors.
 //
 //    This program is free software: you can redistribute it and/or modify
@@ -2197,6 +2197,60 @@ namespace RvE_RandoMice
         }
 
         /// <summary>
+        /// Filters block sets based on the maximum number of markers to change provided by the user.
+        /// </summary>
+        private void BlockSetsResultsDataGridView_FilterByMarkersToChange(object sender, EventArgsWithValue e)
+        {
+            int maximumMarkersToChange = e.IntegerValue;
+
+            if (Global.FinishedExperiment != null && Global.FinishedExperiment.ExperimentalUnitsHaveMarkers)
+            {
+                //clone FinishedExperiment, and create a new run containing all BlockSets from FinishedExperiment's last Run that match the criterium.
+                Experiment filteredExperiment = Global.FinishedExperiment.Clone();
+                Global.FinishedExperiment.Runs.Last().NumberBlockSetsByRank();
+                filteredExperiment.Runs.Add(filteredExperiment.CreateNewRun());
+                filteredExperiment.Runs.Last().BlockSets = Global.FinishedExperiment.Runs.Last().BlockSets.Where(blockset => blockset.NonDistributableExperimentalUnits.Count <= maximumMarkersToChange).Select(blockset => blockset).ToList(); //clone list
+
+                //display filteredExperiment in BlockSetsResultsDataGridView
+                if (filteredExperiment.Runs.Last().BlockSets.Count > 0)
+                    BlockSetsResultsDataGridView.PasteString(filteredExperiment.Runs.Last().GetSetsAndRanksAsString());
+                else
+                    MessageBox.Show("None of the results match the filter criterium.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+
+        /// <summary>
+        /// Filters block sets based on the categories provided by the user.
+        /// </summary>
+        private void BlockSetsResultsDataGridView_FilterByCategory(object sender, EventArgs e)
+        {
+            if (Global.FinishedExperiment != null)
+            {
+                //clone FinishedExperiment, and create a new run containing all BlockSets from FinishedExperiment's last Run that match the criterium.
+                Experiment filteredExperiment = Global.FinishedExperiment.Clone();
+                Global.FinishedExperiment.Runs.Last().NumberBlockSetsByRank();
+                filteredExperiment.Runs.Add(filteredExperiment.CreateNewRun());
+                filteredExperiment.Runs.Last().BlockSets = Global.FinishedExperiment.Runs.Last().BlockSets.Where(blockset => blockset.EachBlockContainsAllExperimentalUnitCategories).Select(blockset => blockset).ToList(); //clone list
+
+                //display filteredExperiment in BlockSetsResultsDataGridView
+                if (filteredExperiment.Runs.Last().BlockSets.Count > 0)
+                    BlockSetsResultsDataGridView.PasteString(filteredExperiment.Runs.Last().GetSetsAndRanksAsString());
+                else
+                    MessageBox.Show("None of the results match the filter criterium.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Removes all filters, i.e. displays all block sets.
+        /// </summary>
+        private void BlockSetsResultsDataGridView_RemoveAllFilters(object sender, EventArgs e)
+        {
+            if (Global.FinishedExperiment != null)
+                BlockSetsResultsDataGridView.PasteString(Global.FinishedExperiment.Runs.Last().GetSetsAndRanksAsString());
+        }
+
+        /// <summary>
         /// Gets the block set number from the currently selected row and displays information
         /// of the corresponding BlockSet in other DatagridViews.
         /// </summary>
@@ -2447,7 +2501,7 @@ namespace RvE_RandoMice
             EnableOrDisableControls(EnableOrDisable.Enable, controlsToEnable);
 
             //find number of block sets to export
-            int numberOfSetsToExport = Global.FinishedExperiment.Runs.Last().BlockSets.Count();
+            int numberOfBlockSetsToExport = Global.FinishedExperiment.Runs.Last().BlockSets.Count();
             
             //if more than 100 block sets need to be exported, warn user and ask how to continue
             if (Global.FinishedExperiment.Runs.Last().BlockSets.Count() > 100)
@@ -2456,7 +2510,7 @@ namespace RvE_RandoMice
                     "Would you like to export the best 100 sets only?", "Export to excel", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 
                 if (dialogResult == DialogResult.Yes)
-                    numberOfSetsToExport = 100;
+                    numberOfBlockSetsToExport = 100;
             }
 
             //set Excel application
@@ -2529,7 +2583,7 @@ namespace RvE_RandoMice
             DateTime datetimeLastProgressChangedUpdate = DateTime.Now;
             TimeSpan timeDiff = new TimeSpan();
 
-            for (int i = 0; i < numberOfSetsToExport; i++)
+            for (int i = 0; i < numberOfBlockSetsToExport; i++)
             {
                 //create a new worksheet for each block set to export
                 xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.Add(After: xlWorkBook.Sheets[xlWorkBook.Sheets.Count]);
@@ -2564,9 +2618,9 @@ namespace RvE_RandoMice
 
                 if ((int)timeDiff.TotalMilliseconds > Global.Settings.BackgroundWorkerReportProgressPeriod)
                 {
-                    Global.FinishedExperiment.Runs.Last().ProgressPercentage = (double)i / (double)BlockSetsResultsDataGridView.RowCount * 100;//to calculate time remaining
+                    Global.FinishedExperiment.Runs.Last().ProgressPercentage = (double)(i + 1) / (double)numberOfBlockSetsToExport * 100;//to calculate time remaining
                     progressPercentage = (int)Math.Floor(Global.FinishedExperiment.Runs.Last().ProgressPercentage);
-                    worker.ReportProgress(progressPercentage, new int[] { i + 1, numberOfSetsToExport });
+                    worker.ReportProgress(progressPercentage, new int[] { i + 1, numberOfBlockSetsToExport });
                     datetimeLastProgressChangedUpdate = DateTime.Now;
                 }
 
@@ -2577,6 +2631,16 @@ namespace RvE_RandoMice
                     break;
                     //backgroundworker will finish as normal, but any remaining sets will not be exported
                 }
+            }
+
+            //Select the first worksheet
+            try
+            {
+                ((Excel.Worksheet)xlWorkBook.Worksheets[1]).Select();
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                //do nothing
             }
 
             //Save the excel file under the captured location from the SaveFileDialog
@@ -2603,7 +2667,7 @@ namespace RvE_RandoMice
             {
                 //report progress a final time
                 progressPercentage = 100; //update to 100%
-                worker.ReportProgress(progressPercentage, new int[] { numberOfSetsToExport, numberOfSetsToExport });
+                worker.ReportProgress(progressPercentage, new int[] { numberOfBlockSetsToExport, numberOfBlockSetsToExport });
             }
 
             e.Result = fileName; //for use in RunWorkerCompleted
@@ -2737,7 +2801,7 @@ namespace RvE_RandoMice
                         if ((int)timeDiff.TotalMilliseconds > Global.Settings.BackgroundWorkerReportProgressPeriod)
                         {
                             Global.SetsExported = i + 1;
-                            Global.FinishedExperiment.Runs.Last().ProgressPercentage = (double)i / (double)selectedRun.BlockSets.Count * 100;//to calculate time remaining
+                            Global.FinishedExperiment.Runs.Last().ProgressPercentage = (double)(i + 1) / (double)numberOfBlockSetsToExport * 100;//to calculate time remaining
                             progressPercentage = (int)Math.Floor(Global.FinishedExperiment.Runs.Last().ProgressPercentage);
                             worker.ReportProgress(progressPercentage, new int[] { Global.SetsExported, numberOfBlockSetsToExport });
                             datetimeLastUpdate = DateTime.Now;
@@ -3023,5 +3087,11 @@ namespace RvE_RandoMice
             }
         }
         #endregion
+
+        private void FilterResultsPictureBox_MouseClick(object sender, MouseEventArgs e)
+        {
+            (int X, int Y) offset = (FilterResultsPictureBox.Left - BlockSetsResultsDataGridView.Left, FilterResultsPictureBox.Top - BlockSetsResultsDataGridView.Top);
+            BlockSetsResultsDataGridView.ShowFilterMenuItems(e, offset);
+        }
     }
 }

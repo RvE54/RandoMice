@@ -29,19 +29,28 @@ using System.Windows.Forms;
 
 namespace RvE_RandoMice
 {
-    public partial class DisplayDataGridViewDetailsForm : Form
+    public partial class RequestCategoryOfExperimentalUnitsForm : Form
     {
-        private MyDataGridView SourceDataGridView { get; set; } = null;
-
-        public DisplayDataGridViewDetailsForm(MyDataGridView sourceDataGridView)
+        public RequestCategoryOfExperimentalUnitsForm()
         {
             InitializeComponent();
-            SourceDataGridView = sourceDataGridView;
         }
 
-        private void DisplayDataGridView_Load(object sender, EventArgs e)
+        private void RequestCategoryOfExperimentalUnits_Load(object sender, EventArgs e)
         {
-            mainDataGridView.CloneSettingsFrom(SourceDataGridView);
+            int minimumColumnWidth = Global.Settings.RequestCategoryDataGridViewColumnMinimumWidth;
+            mainDataGridView.PasteString("Experimental unit\tCategory\r\n" + string.Join("\r\n", Global.FinishedExperiment.AllExperimentalUnits.Select(experimentalUnit => experimentalUnit.Name + "\t" + experimentalUnit.Category)));
+            mainDataGridView.Columns[0].MinimumWidth = minimumColumnWidth;
+            mainDataGridView.Columns[1].MinimumWidth = minimumColumnWidth;
+
+            mainDataGridView.Columns[0].ReadOnly = true; //allow user to edit the category strings only
+
+            //change appearance of readonly cells
+            DataGridViewCellStyle DataGridViewReadOnlyCellStyle = new DataGridViewCellStyle();
+            DataGridViewReadOnlyCellStyle.ForeColor = Color.DarkGray;
+
+            foreach (DataGridViewRow row in mainDataGridView.Rows)
+                row.Cells[0].Style = DataGridViewReadOnlyCellStyle;
 
             //get corrections needed to resize the form
             int totalHeightOfDataGridView = mainDataGridView.Rows.GetRowsHeight(DataGridViewElementStates.None) + mainDataGridView.ColumnHeadersHeight;
@@ -51,10 +60,10 @@ namespace RvE_RandoMice
             int widthCorrection = totalWidthOfDataGridView - mainDataGridView.Width + 4; //small correction needed
 
             //resize form height
-            if (Height + heightCorrection < Screen.FromControl(this).WorkingArea.Height)
+            if (Height + heightCorrection < Screen.FromControl(this).WorkingArea.Height / 2)
                 Height += heightCorrection;
             else
-                Height = Screen.FromControl(this).WorkingArea.Height;
+                Height = Screen.FromControl(this).WorkingArea.Height / 2;
 
             //adjust correction if a vertical scrollbar is visible
             if (mainDataGridView.Controls.OfType<VScrollBar>().First().Visible)
@@ -65,13 +74,27 @@ namespace RvE_RandoMice
                 Width += widthCorrection;
             else
                 Width = Screen.FromControl(this).WorkingArea.Width;
+        }
 
-            CenterToScreen();
+        private void OKButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                for (int i = 0; i < Global.FinishedExperiment.AllExperimentalUnits.Count; i++)
+                    Global.FinishedExperiment.AllExperimentalUnits[i].Category = mainDataGridView.Rows[i].Cells[1].Value.ToString();
+
+                DialogResult = DialogResult.OK;
+            }
+            catch
+            {
+                MessageBox.Show("Something went wrong with the interpretation of the category names. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                DialogResult = DialogResult.Cancel;
+            }
         }
 
         private void CancelButton_Click(object sender, EventArgs e)
         {
-            this.Close();
+            DialogResult = DialogResult.Cancel;
         }
     }
 }

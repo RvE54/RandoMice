@@ -110,6 +110,7 @@
     <Compile Include="HelpPictureBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="EventArgsWithValue.cs" />
     <Compile Include="LicenceForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -139,11 +140,23 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RequestCategoryOfExperimentalUnitsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RequestCategoryOfExperimentalUnitsForm.Designer.cs">
+      <DependentUpon>RequestCategoryOfExperimentalUnitsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestGroupNamesForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="RequestGroupNamesForm.Designer.cs">
       <DependentUpon>RequestGroupNamesForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RequestInteger.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RequestInteger.Designer.cs">
+      <DependentUpon>RequestInteger.cs</DependentUpon>
     </Compile>
     <Compile Include="Variable.cs" />
     <Compile Include="Program.cs" />
@@ -175,8 +188,15 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="RequestCategoryOfExperimentalUnitsForm.resx">
+      <DependentUpon>RequestCategoryOfExperimentalUnitsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="RequestGroupNamesForm.resx">
       <DependentUpon>RequestGroupNamesForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RequestInteger.resx">
+      <DependentUpon>RequestInteger.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="RvE_RandoMice_TemporaryKey.pfx" />
@@ -229,6 +249,7 @@
   <ItemGroup />
   <ItemGroup>
     <Content Include="RandoMice.ico" />
+    <None Include="Resources\Filter.png" />
     <None Include="Resources\Mouse.png" />
     <None Include="Resources\MagnifyingGlass.png" />
     <None Include="Resources\Open.png" />
