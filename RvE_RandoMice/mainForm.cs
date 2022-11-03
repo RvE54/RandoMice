@@ -2370,7 +2370,7 @@ namespace RvE_RandoMice
             {
                 Stopwatch.Restart();
 
-                if (fileExtension == ".xls" && !ExportToExcelBackgroundWorker.IsBusy) //export to Excel
+                if (fileExtension == ".xlsx" && !ExportToExcelBackgroundWorker.IsBusy) //export to Excel
                 {
                     CreateBlockSetsTimer.Start();
                     ExportToExcelBackgroundWorker.RunWorkerAsync(argument: (exportFileSaveFileDialog.FileName));
@@ -2495,6 +2495,7 @@ namespace RvE_RandoMice
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             string fileName = (string)e.Argument;
+            bool fileCanBeSaved = false;
 
             Control[] controlsToEnable = { AbortRunButton, MainProgressBar };
             Global.ControlsAndEnabledStates = EnableOrDisableAllControls(EnableOrDisable.Disable);
@@ -2507,7 +2508,7 @@ namespace RvE_RandoMice
             if (Global.FinishedExperiment.Runs.Last().BlockSets.Count() > 100)
             {
                 DialogResult dialogResult = MessageBox.Show("The program will export more than 100 sets.\n" +
-                    "Would you like to export the best 100 sets only?", "Export to excel", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    "Would you like to export the best 100 sets only?", "Export to Excel", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 
                 if (dialogResult == DialogResult.Yes)
                     numberOfBlockSetsToExport = 100;
@@ -2515,10 +2516,28 @@ namespace RvE_RandoMice
 
             //set Excel application
             object misValue = System.Reflection.Missing.Value;
-            Excel.Application xlExcel = new Excel.Application
+            Excel.Application xlExcel = null;
+
+            try
             {
-                DisplayAlerts = false // If DisplayAlerts == true, you will get two confirm overwrite prompts
-            };
+                xlExcel = new Excel.Application
+                {
+                    DisplayAlerts = false // If DisplayAlerts == true, you will get two confirm overwrite prompts
+                };
+
+                if (xlExcel == null)
+                {
+                    MessageBox.Show("Could not initialize a  connection with Excel, is Excel installed?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    e.Cancel = true;
+                    return;
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Could not initialize a connection with Excel, is Excel installed?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.Cancel = true;
+                return;
+            }
 
             //create new workbook
             Excel.Workbook xlWorkBook = xlExcel.Workbooks.Add(misValue);
@@ -2533,16 +2552,46 @@ namespace RvE_RandoMice
                 //do nothing, likely no Worksheet was found that could be deleted
             }
 
-            //try to save workbook to see if saving is possible
+            //try to save workbook before starting the (slow) export process
             try
             {
-                xlWorkBook.SaveAs(fileName, Excel.XlFileFormat.xlWorkbookNormal, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+                xlWorkBook.SaveAs(fileName, Excel.XlFileFormat.xlOpenXMLWorkbook, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+                fileCanBeSaved = true;
             }
             catch (System.Runtime.InteropServices.COMException)
             {
-                MessageBox.Show("Cannot save the excel file. Close all currently open excel files and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                try
+                {
+                    //Saving with above XLFileFormat might have failed, therefore try again using the default format of the Excel version being used (i.e. use misValue)
+                    xlWorkBook.SaveAs(fileName, misValue, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+                    fileCanBeSaved = true;
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    try
+                    {
+                        //as a last resort, use SaveCopyAs()
+                        xlWorkBook.SaveCopyAs(fileName);
+                        fileCanBeSaved = true;
+                    }
+                    catch
+                    {
+                        //do nothing
+                    }
+                }
+            }
+            catch
+            {
+                //do nothing
+            }
+
+            if (!fileCanBeSaved)
+            {
+                MessageBox.Show("Cannot save the Excel file. Please try again later.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.Cancel = true;
                 return;
             }
+
 
             //create new worksheet
             Excel.Worksheet xlWorkSheet = (Excel.Worksheet)xlWorkBook.Worksheets.Add(After: xlWorkBook.Sheets[xlWorkBook.Sheets.Count]);
@@ -2573,7 +2622,7 @@ namespace RvE_RandoMice
             xlWorkSheet.Name = "Data of experimental units";
             PasteDataToExcel(Global.FinishedExperiment.InputData, xlWorkSheet, 1, 1);
 
-            //deselect all in excel
+            //deselect all in Excel
             Excel.Range xlRange = (Excel.Range)xlWorkSheet.Cells[1, 1];
             xlRange.Select();
 
@@ -2643,15 +2692,44 @@ namespace RvE_RandoMice
                 //do nothing
             }
 
-            //Save the excel file under the captured location from the SaveFileDialog
+            //save workbook
             try
             {
-                xlWorkBook.SaveAs(fileName, Excel.XlFileFormat.xlWorkbookNormal, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+                xlWorkBook.SaveAs(fileName, Excel.XlFileFormat.xlOpenXMLWorkbook, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+                fileCanBeSaved = true;
             }
             catch (System.Runtime.InteropServices.COMException)
             {
-                MessageBox.Show("Cannot save the Excel file. Please close any currently open Excel files and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                try
+                {
+                    //Saving with above XLFileFormat might have failed, therefore try again using the default format of the Excel version being used (i.e. use misValue)
+                    xlWorkBook.SaveAs(fileName, misValue, misValue, misValue, misValue, misValue, Excel.XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+                    fileCanBeSaved = true;
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    try
+                    {
+                        //as a last resort, use SaveCopyAs()
+                        xlWorkBook.SaveCopyAs(fileName);
+                        fileCanBeSaved = true;
+                    }
+                    catch
+                    {
+                        //do nothing
+                    }
+                }
+            }
+            catch
+            {
+                //do nothing
+            }
+
+            if (!fileCanBeSaved)
+            {
+                MessageBox.Show("Cannot save the Excel file. Please try again later.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 e.Cancel = true;
+                return;
             }
 
             //clean up
@@ -2679,7 +2757,10 @@ namespace RvE_RandoMice
                 System.Diagnostics.Process.Start("explorer.exe", argument);
             }
             else
-                throw new InvalidOperationException("File cannot be found."); //error will be handled by RunWorkerCompleted
+            {
+                MessageBox.Show("Excel file could not be saved, please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.Cancel = true;
+            }
         }
 
         private void ExportToFileBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
@@ -2838,7 +2919,10 @@ namespace RvE_RandoMice
                     System.Diagnostics.Process.Start("explorer.exe", argument);
                 }
                 else
-                    throw new InvalidOperationException("File cannot be found."); //error will be handled by RunWorkerCompleted
+                {
+                    MessageBox.Show("File could not be saved, please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    e.Cancel = true;
+                }
             }
         }
 

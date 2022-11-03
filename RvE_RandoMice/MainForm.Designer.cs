@@ -445,15 +445,15 @@
             // ExcelToolStripMenuItem
             // 
             this.ExcelToolStripMenuItem.Name = "ExcelToolStripMenuItem";
-            this.ExcelToolStripMenuItem.Size = new System.Drawing.Size(94, 22);
+            this.ExcelToolStripMenuItem.Size = new System.Drawing.Size(97, 22);
             this.ExcelToolStripMenuItem.Tag = "Excel Workbook";
-            this.ExcelToolStripMenuItem.Text = ".xls";
+            this.ExcelToolStripMenuItem.Text = ".xlsx";
             this.ExcelToolStripMenuItem.Click += new System.EventHandler(this.ExportResultsToFileToolStripMenuItem_Click);
             // 
             // TSVToolStripMenuItem
             // 
             this.TSVToolStripMenuItem.Name = "TSVToolStripMenuItem";
-            this.TSVToolStripMenuItem.Size = new System.Drawing.Size(94, 22);
+            this.TSVToolStripMenuItem.Size = new System.Drawing.Size(97, 22);
             this.TSVToolStripMenuItem.Tag = "Tab-separated values";
             this.TSVToolStripMenuItem.Text = ".tsv";
             this.TSVToolStripMenuItem.Click += new System.EventHandler(this.ExportResultsToFileToolStripMenuItem_Click);
@@ -461,7 +461,7 @@
             // CSVToolStripMenuItem
             // 
             this.CSVToolStripMenuItem.Name = "CSVToolStripMenuItem";
-            this.CSVToolStripMenuItem.Size = new System.Drawing.Size(94, 22);
+            this.CSVToolStripMenuItem.Size = new System.Drawing.Size(97, 22);
             this.CSVToolStripMenuItem.Tag = "Comma separated values";
             this.CSVToolStripMenuItem.Text = ".csv";
             this.CSVToolStripMenuItem.Click += new System.EventHandler(this.ExportResultsToFileToolStripMenuItem_Click);
@@ -469,7 +469,7 @@
             // TXTToolStripMenuItem
             // 
             this.TXTToolStripMenuItem.Name = "TXTToolStripMenuItem";
-            this.TXTToolStripMenuItem.Size = new System.Drawing.Size(94, 22);
+            this.TXTToolStripMenuItem.Size = new System.Drawing.Size(97, 22);
             this.TXTToolStripMenuItem.Tag = "Text file";
             this.TXTToolStripMenuItem.Text = ".txt";
             this.TXTToolStripMenuItem.Click += new System.EventHandler(this.ExportResultsToFileToolStripMenuItem_Click);
